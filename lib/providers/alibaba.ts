@@ -7,8 +7,10 @@ export const alibabaProvider: ImageProvider = {
   id: 'alibaba',
   name: 'Alibaba DashScope',
   models: [
-    { id: 'wanx-v2', name: 'Wanx v2' },
-    { id: 'wanx-v1', name: 'Wanx v1' },
+    { id: 'qwen-image-edit-max', name: 'Qwen Image Edit Max' },
+    { id: 'qwen-image-edit-plus', name: 'Qwen Image Edit Plus' },
+    { id: 'qwen-image-max', name: 'Qwen Image Max' },
+    { id: 'qwen-image-plus', name: 'Qwen Image Plus' },
   ],
 
   async validateKey(key: string): Promise<boolean> {
@@ -39,7 +41,7 @@ export const alibabaProvider: ImageProvider = {
         body: JSON.stringify({
           image: imageBase64,
           mask: maskBase64,
-          model: req.model || 'wanx-v2',
+          model: req.model || 'qwen-image-edit-max',
           prompt: req.prompt || 'enhance this image',
           apiKey: apiKey,
         }),
