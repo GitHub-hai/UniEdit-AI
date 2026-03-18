@@ -1,44 +1,7 @@
 import { ImageProvider, EditRequest } from '../types';
 
-const DASHSCOPE_API_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
-
-async function pollForResult(apiKey: string, requestId: string): Promise<Blob> {
-  const maxRetries = 30;
-  const interval = 2000;
-
-  for (let i = 0; i < maxRetries; i++) {
-    await new Promise(resolve => setTimeout(resolve, interval));
-
-    const response = await fetch(
-      `https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/get-task`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) continue;
-
-    const data = await response.json();
-
-    if (data.output?.choices?.[0]?.message?.content?.[0]?.image) {
-      const imageUrl = data.output.choices[0].message.content[0].image;
-      const imageResponse = await fetch(imageUrl);
-      return imageResponse.blob();
-    }
-
-    if (data.task_status === 'PENDING' || data.task_status === 'RUNNING') {
-      continue;
-    }
-
-    throw new Error(data.message || 'Generation failed');
-  }
-
-  throw new Error('Timeout waiting for image generation');
-}
+// 华北2（北京）正确地址
+const DASHSCOPE_API_ENDPOINT = 'https://dashscope.aliyuncs.com/compatible-mode/v1/images/generations';
 
 export const alibabaProvider: ImageProvider = {
   id: 'alibaba',
@@ -50,8 +13,7 @@ export const alibabaProvider: ImageProvider = {
 
   async validateKey(key: string): Promise<boolean> {
     try {
-      // Use a simple model list API to validate
-      const response = await fetch('https://dashscope.aliyuncs.com/api/v1/models', {
+      const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/models', {
         headers: {
           'Authorization': `Bearer ${key}`,
           'Content-Type': 'application/json',
@@ -67,51 +29,28 @@ export const alibabaProvider: ImageProvider = {
     // Convert image to base64
     const imageBase64 = await blobToBase64(req.image);
 
-    // Build the request based on mode
-    let requestBody: any = {
+    // Build request body based on mode
+    const requestBody: any = {
       model: req.model || 'wanx-v2',
-      input: {
-        prompt: req.prompt,
-      },
-      parameters: {},
-    };
+      prompt: req.prompt,
+    };;
 
-    // For different modes
-    if (req.mode === 'edit' || req.mode === 'inpaint') {
-      requestBody.input.image = [
-        {
-          image: imageBase64.split(',')[1], // Remove data URL prefix
-        },
-      ];
-
-      if (req.mode === 'inpaint' && req.mask) {
-        // Add mask for inpainting
-        const maskBase64 = await blobToBase64(req.mask);
-        requestBody.input.image.push({
-          mask: maskBase64.split(',')[1],
-        });
-      }
+    // Different parameters for different modes
+    if (req.mode === 'edit') {
+      // Image editing - send as base64
+      requestBody.image = imageBase64;
+    } else if (req.mode === 'inpaint' && req.mask) {
+      // Inpainting - need mask
+      const maskBase64 = await blobToBase64(req.mask);
+      requestBody.image = imageBase64;
+      requestBody.mask = maskBase64;
     } else if (req.mode === 'outpaint') {
-      // Outpainting requires special handling
-      requestBody.parameters = {
-        size: '1920x1080',
-        n: 1,
-      };
-      requestBody.input.image = [
-        {
-          image: imageBase64.split(',')[1],
-        },
-      ];
+      // Outpainting
+      requestBody.image = imageBase64;
+      requestBody.size = '1920x1080';
     } else if (req.mode === 'upscale') {
       // Upscaling
-      requestBody.parameters = {
-        scale: req.scale || 2,
-      };
-      requestBody.input.image = [
-        {
-          image: imageBase64.split(',')[1],
-        },
-      ];
+      requestBody.image = imageBase64;
     }
 
     const response = await fetch(DASHSCOPE_API_ENDPOINT, {
@@ -119,32 +58,21 @@ export const alibabaProvider: ImageProvider = {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'X-DashScope-Async': 'disable',
       },
       body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || `API Error: ${response.status}`);
+      throw new Error(error.error?.message || error.message || `API Error: ${response.status}`);
     }
 
     const data = await response.json();
 
-    // Check for async or sync response
-    if (data.output && data.output.choices && data.output.choices[0]) {
-      const imageUrl = data.output.choices[0].message?.content?.[0]?.image;
-
-      if (imageUrl) {
-        // Fetch the generated image
-        const imageResponse = await fetch(imageUrl);
-        return imageResponse.blob();
-      }
-    }
-
-    // If it's an async task, we need to poll for result
-    if (data.request_id) {
-      return await pollForResult(apiKey, data.request_id);
+    if (data.data && data.data[0] && data.data[0].url) {
+      const imageUrl = data.data[0].url;
+      const imageResponse = await fetch(imageUrl);
+      return imageResponse.blob();
     }
 
     throw new Error('No image generated');
