@@ -16,6 +16,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing image' }, { status: 400 });
     }
 
+    // 去掉 base64 前缀
+    const imageBase64 = image.replace(/^data:image\/\w+;base64,/, '');
+    let maskBase64 = mask ? mask.replace(/^data:image\/\w+;base64,/, '') : undefined;
+
+    console.log('[API] Image base64 length:', imageBase64.length);
+
     // 使用 qwen-image 模型
     const modelName = model || 'qwen-image-edit-max';
 
@@ -29,17 +35,16 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // 添加图片到 input
-    if (image) {
-      requestBody.input.image = [{ image: image }];
-    }
+    // 添加图片 - 只传 base64 数据，不要前缀
+    requestBody.input.image = [{ image: imageBase64 }];
 
     // 添加 mask（如果有）
-    if (mask) {
-      requestBody.input.image.push({ mask: mask });
+    if (maskBase64) {
+      requestBody.input.image.push({ mask: maskBase64 });
     }
 
     console.log('[API] Calling Alibaba with model:', modelName);
+    console.log('[API] Request body keys:', Object.keys(requestBody));
 
     const response = await fetch(DASHSCOPE_API_ENDPOINT, {
       method: 'POST',
