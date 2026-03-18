@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useApp } from '@/lib/context';
 import { ImageUploader } from './ImageUploader';
 import { ModeTabs } from './ModeTabs';
 import { ModeControls } from './ModeControls';
-import { preprocessImage, createMaskFromDrawing } from '@/lib/preprocessor';
-import { openAIProvider, alibabaProvider, getProvider } from '@/lib/providers';
+import { preprocessImage } from '@/lib/preprocessor';
+import { getProvider } from '@/lib/providers';
 import { blobToBase64 } from '@/lib/utils';
 import { Toaster, toast } from 'sonner';
 
@@ -33,11 +33,11 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     setIsLoading,
     setIsSettingsOpen,
     addToHistory,
-    miniMaxKey,
   } = useApp();
 
   const handleGenerate = useCallback(async () => {
-    if (!originalImage) {
+    // 文生图模式不需要图片
+    if (!originalImage && activeMode !== 't2i') {
       toast.error('请先上传图片');
       return;
     }
@@ -48,13 +48,11 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       return;
     }
 
-    // Check prompt for edit/inpaint modes
-    if ((activeMode === 'edit' || activeMode === 'inpaint') && !prompt.trim()) {
-      toast.error('请输入编辑指令');
+    if ((activeMode === 'edit' || activeMode === 'inpaint' || activeMode === 't2i') && !prompt.trim()) {
+      toast.error('请输入生成描述');
       return;
     }
 
-    // Get the provider
     const provider = getProvider(apiProvider);
     if (!provider) {
       toast.error('不支持的提供商');
@@ -65,25 +63,24 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     toast.loading('正在处理...', { id: 'generating' });
 
     try {
-      // Preprocess image
-      const processedImage = await preprocessImage(originalImage, {
-        provider: apiProvider,
-      });
+      let imageBlob: Blob | undefined;
 
-      // Convert to blob
-      const imageBlob = await fetch(processedImage).then(r => r.blob());
-
-      // For inpainting, we need to create mask
-      let maskBlob: Blob | undefined;
-      if (activeMode === 'inpaint' && window.maskDataUrl) {
-        // The mask is drawn on the canvas, we need to get it
-        // This will be handled by the canvas component
+      // 文生图模式不需要图片
+      if (originalImage) {
+        const processedImage = await preprocessImage(originalImage, {
+          provider: apiProvider,
+        });
+        imageBlob = await fetch(processedImage).then(r => r.blob());
       }
 
-      // Call provider API
+      let maskBlob: Blob | undefined;
+      if (activeMode === 'inpaint' && window.maskDataUrl) {
+        // Mask handling
+      }
+
       const resultBlob = await provider.generate(
         {
-          image: imageBlob,
+          image: imageBlob!,
           mask: maskBlob,
           prompt,
           mode: activeMode,
@@ -92,11 +89,9 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
         apiKey
       );
 
-      // Convert result to base64
       const resultBase64 = await blobToBase64(resultBlob);
       setResultImage(resultBase64);
 
-      // Add to history
       addToHistory({
         thumbnail: resultBase64,
         prompt,
@@ -109,7 +104,6 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     } catch (error) {
       console.error('Generation error:', error);
       const errorMsg = error instanceof Error ? error.message : '生成失败，请重试';
-      // Check for common errors
       if (errorMsg.includes('Failed to fetch')) {
         toast.error('网络请求失败，请检查网络或API Key是否正确', { id: 'generating' });
       } else {
@@ -120,16 +114,18 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     }
   }, [originalImage, apiKey, apiProvider, model, activeMode, prompt, setIsLoading, setResultImage, addToHistory, setIsSettingsOpen]);
 
-  const canGenerate = originalImage && !isLoading && (
-    activeMode === 'upscale' || prompt.trim().length > 0
+  // 文生图模式不需要图片，其他模式需要
+  const needsImage = activeMode !== 't2i';
+  const canGenerate = (!needsImage || originalImage) && !isLoading && (
+    activeMode === 'upscale' || activeMode === 't2i' || prompt.trim().length > 0
   );
 
   return (
-    <div className="w-full lg:w-96 xl:w-[500px] bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden">
-      <Toaster position="top-center" />
+    <div className="w-full lg:w-96 xl:w-[480px] bg-[#1d1d1f] border-r border-white/5 flex flex-col h-full overflow-hidden">
+      <Toaster position="top-center" theme="dark" />
 
       {/* Image Upload */}
-      <div className="p-3 border-b border-slate-200 shrink-0">
+      <div className="p-4 border-b border-white/5">
         <ImageUploader />
       </div>
 
@@ -137,7 +133,7 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       <ModeTabs />
 
       {/* Mode Controls */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
         <ModeControls
           onUndo={onUndo}
           onRedo={onRedo}
@@ -148,28 +144,27 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       </div>
 
       {/* Generate Button */}
-      <div className="p-4 border-t border-slate-200">
+      <div className="p-5 border-t border-white/5">
         <button
           onClick={handleGenerate}
           disabled={!canGenerate}
-          className="btn-primary w-full flex items-center justify-center gap-2"
+          className="btn-primary w-full flex items-center justify-center gap-2.5 h-12 text-[15px]"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              处理中...
+              <Loader2 className="w-[18px] h-[18px] animate-spin" />
+              <span>处理中...</span>
             </>
           ) : (
-            <>
-              <span>开始生成</span>
-            </>
+            <span>开始生成</span>
           )}
         </button>
 
         {!apiKey && (
-          <p className="text-xs text-amber-600 mt-2 text-center">
-            请先在设置中配置 API Key
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-3 text-xs text-amber-400">
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span>请先在设置中配置 API Key</span>
+          </div>
         )}
       </div>
     </div>

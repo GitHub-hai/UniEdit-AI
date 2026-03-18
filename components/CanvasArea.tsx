@@ -12,7 +12,6 @@ export function CanvasArea() {
   const redoStackRef = useRef<string[]>([]);
 
   const handleMaskChange = useCallback((maskDataUrl: string) => {
-    // Save to undo stack
     if (undoStackRef.current.length === 0 || undoStackRef.current[undoStackRef.current.length - 1] !== maskDataUrl) {
       undoStackRef.current.push(maskDataUrl);
       if (undoStackRef.current.length > 20) {
@@ -54,7 +53,7 @@ export function CanvasArea() {
   }, [setMaskData]);
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0a0a0a]">
       <ImageCompare
         onUndo={handleUndo}
         onRedo={handleRedo}

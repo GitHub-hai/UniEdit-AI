@@ -68,7 +68,7 @@ export const PROVIDERS = [
   { id: 'minimax', name: 'MiniMax', icon: '🔴' },
 ] as const;
 
-export const MODELS: Record<string, { id: string; name: string }[]> = {
+export const MODELS: Record<string, { id: string; name: string; category?: string }[]> = {
   openai: [
     { id: 'dall-e-3', name: 'DALL-E 3 (1024x1024)' },
     { id: 'dall-e-2', name: 'DALL-E 2 (1024x1024)' },
@@ -79,10 +79,29 @@ export const MODELS: Record<string, { id: string; name: string }[]> = {
     { id: 'imagen-2', name: 'Imagen 2' },
   ],
   alibaba: [
-    { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro (推荐)' },
-    { id: 'qwen-image-2.0', name: 'Qwen Image 2.0' },
-    { id: 'qwen-image-edit-max', name: 'Qwen Image Edit Max' },
-    { id: 'qwen-image-edit-plus', name: 'Qwen Image Edit Plus' },
+    // 千问图像编辑 (推荐)
+    { id: 'qwen-image-edit-max', name: 'Qwen Image Edit Max (推荐)', category: 'edit' },
+    { id: 'qwen-image-edit-max-2026-01-16', name: 'Qwen Image Edit Max 2026-01-16', category: 'edit' },
+    { id: 'qwen-image-edit-plus', name: 'Qwen Image Edit Plus', category: 'edit' },
+    { id: 'qwen-image-edit-plus-2025-12-15', name: 'Qwen Image Edit Plus 2025-12-15', category: 'edit' },
+    { id: 'qwen-image-edit-plus-2025-10-30', name: 'Qwen Image Edit Plus 2025-10-30', category: 'edit' },
+    { id: 'qwen-image-edit', name: 'Qwen Image Edit', category: 'edit' },
+    // 千问文生图
+    { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro (推荐)', category: 't2i' },
+    { id: 'qwen-image-2.0-pro-2026-03-03', name: 'Qwen Image 2.0 Pro 2026-03-03', category: 't2i' },
+    { id: 'qwen-image-2.0', name: 'Qwen Image 2.0', category: 't2i' },
+    { id: 'qwen-image-2.0-2026-03-03', name: 'Qwen Image 2.0 2026-03-03', category: 't2i' },
+    { id: 'qwen-image-plus', name: 'Qwen Image Plus', category: 't2i' },
+    { id: 'qwen-image-max', name: 'Qwen Image Max', category: 't2i' },
+    // 万相文生图
+    { id: 'wan2.6-t2i', name: '万相 2.6 文生图 (推荐)', category: 'wan' },
+    { id: 'wan2.5-t2i-preview', name: '万相 2.5 Preview', category: 'wan' },
+    { id: 'wan2.2-t2i-plus', name: '万相 2.2 Plus', category: 'wan' },
+    { id: 'wan2.2-t2i-flash', name: '万相 2.2 Flash', category: 'wan' },
+    // 万相图像编辑
+    { id: 'wan2.6-image-edit', name: '万相 2.6 图像编辑', category: 'wan-edit' },
+    { id: 'wan2.5-image-edit', name: '万相 2.5 图像编辑', category: 'wan-edit' },
+    { id: 'wan2.1-image-edit', name: '万相 2.1 图像编辑', category: 'wan-edit' },
   ],
   replicate: [
     { id: 'flux-pro', name: 'Flux Pro' },
@@ -103,4 +122,5 @@ export const MODE_TABS = [
   { id: 'inpaint', label: '局部重绘', icon: '🎨' },
   { id: 'outpaint', label: '智能扩图', icon: '🖼️' },
   { id: 'upscale', label: '画质增强', icon: '✨' },
+  { id: 't2i', label: '文生图', icon: '🌟' },
 ] as const;

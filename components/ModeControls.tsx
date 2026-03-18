@@ -29,7 +29,6 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     miniMaxKey,
   } = useApp();
 
-  // Edit mode expand/collapse state
   const [isEditExpanded, setIsEditExpanded] = useState(true);
 
   // Edit mode - show prompt textarea with collapse
@@ -37,13 +36,13 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-white">
             编辑指令
           </label>
           <button
             type="button"
             onClick={() => setIsEditExpanded(!isEditExpanded)}
-            className="text-xs text-blue-600 hover:text-blue-700"
+            className="text-xs text-[#2997ff] hover:text-[#0a84ff]"
           >
             {isEditExpanded ? '收起' : '展开'}
           </button>
@@ -65,7 +64,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     return (
       <div className="space-y-4">
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+          <label className="text-sm font-medium text-white mb-2 block">
             笔刷大小: {brushSize}px
           </label>
           <input
@@ -74,7 +73,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
             max="50"
             value={brushSize}
             onChange={(e) => setBrushSize(Number(e.target.value))}
-            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            className="w-full h-1.5 bg-[#3d3d3f] rounded-lg appearance-none cursor-pointer accent-[#2997ff]"
           />
         </div>
 
@@ -103,12 +102,12 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
           </button>
         </div>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#86868b]">
           在右侧画布上涂抹红色区域，标识需要重绘的部分
         </p>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+          <label className="text-sm font-medium text-white mb-2 block">
             替换指令 (可选)
           </label>
           <textarea
@@ -128,7 +127,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     return (
       <div className="space-y-4">
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-white mb-2 block">
             扩展方向
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -136,10 +135,10 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
               <button
                 key={dir}
                 onClick={() => setOutpaintDirection(dir)}
-                className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                className={`py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                   outpaintDirection === dir
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#2997ff] text-white'
+                    : 'bg-[#2d2d2f] text-[#86868b] hover:bg-[#3d3d3f] hover:text-white'
                 }`}
               >
                 {dir === 'top' && '↑ 上'}
@@ -153,7 +152,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+          <label className="text-sm font-medium text-white mb-2 block">
             扩展比例: {outpaintRatio}%
           </label>
           <input
@@ -162,7 +161,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
             max="50"
             value={outpaintRatio}
             onChange={(e) => setOutpaintRatio(Number(e.target.value))}
-            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            className="w-full h-1.5 bg-[#3d3d3f] rounded-lg appearance-none cursor-pointer accent-[#2997ff]"
           />
         </div>
       </div>
@@ -174,7 +173,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     return (
       <div className="space-y-4">
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-white mb-2 block">
             放大倍数
           </label>
           <div className="flex gap-2">
@@ -184,8 +183,8 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
                 onClick={() => setUpscaleScale(scale)}
                 className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
                   upscaleScale === scale
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#2997ff] text-white'
+                    : 'bg-[#2d2d2f] text-[#86868b] hover:bg-[#3d3d3f] hover:text-white'
                 }`}
               >
                 {scale}x
@@ -194,9 +193,30 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
           </div>
         </div>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#86868b]">
           画质增强无需提示词，将自动提升图片分辨率和细节
         </p>
+      </div>
+    );
+  }
+
+  // 文生图模式 - 只显示提示词输入
+  if (activeMode === 't2i') {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-white">
+            生成描述
+          </label>
+        </div>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="描述你想要的图片，如：一只可爱的猫咪坐在窗台上，阳光从窗外照进来..."
+          className="textarea"
+          rows={6}
+        />
+        <PromptEnhancerInline />
       </div>
     );
   }
@@ -212,7 +232,6 @@ function PromptEnhancerInline() {
   const [error, setError] = useState<string | null>(null);
   const [selectedExamples, setSelectedExamples] = useState<string[]>([]);
 
-  // Example prompts for quick reference
   const examplePrompts = [
     '让天空更蓝',
     '添加夕阳效果',
@@ -249,7 +268,6 @@ function PromptEnhancerInline() {
     }
   };
 
-  // Multi-select: toggle example selection
   const handleExampleClick = (example: string) => {
     setSelectedExamples((prev) => {
       if (prev.includes(example)) {
@@ -259,7 +277,6 @@ function PromptEnhancerInline() {
     });
   };
 
-  // Apply selected examples to AI optimize input
   const handleApplyExamples = () => {
     if (selectedExamples.length > 0) {
       const combined = selectedExamples.join('，');
@@ -292,15 +309,14 @@ function PromptEnhancerInline() {
         </button>
       </div>
 
-      {/* Example prompts - multi-select */}
-      <div className="space-y-1">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-500">试试可以这样写（可多选）：</p>
+          <p className="text-xs text-[#86868b]">试试可以这样写（可多选）：</p>
           {selectedExamples.length > 0 && (
             <button
               type="button"
               onClick={handleApplyExamples}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              className="text-xs text-[#2997ff] hover:text-[#0a84ff] font-medium"
             >
               填入编辑框 ({selectedExamples.length})
             </button>
@@ -312,10 +328,10 @@ function PromptEnhancerInline() {
               key={example}
               type="button"
               onClick={() => handleExampleClick(example)}
-              className={`text-xs px-2 py-1 rounded transition-colors ${
+              className={`text-xs px-2.5 py-1.5 rounded-lg transition-all ${
                 selectedExamples.includes(example)
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                  ? 'bg-[#2997ff] text-white'
+                  : 'bg-[#2d2d2f] text-[#86868b] hover:bg-[#3d3d3f] hover:text-white'
               }`}
             >
               {example}
@@ -324,9 +340,9 @@ function PromptEnhancerInline() {
         </div>
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-[#ff453a]">{error}</p>}
       {!miniMaxKey && (
-        <p className="text-xs text-amber-600">
+        <p className="text-xs text-amber-400">
           需要在设置中配置 MiniMax Key 才能使用提示词优化
         </p>
       )}

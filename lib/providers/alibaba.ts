@@ -1,20 +1,56 @@
 import { ImageProvider, EditRequest } from '../types';
 
-// Use Next.js API route as proxy to avoid CORS
 const API_ROUTE = '/api/alibaba';
+
+// 千问模型分类
+const MODEL_CATEGORIES: Record<string, string> = {
+  // 图像编辑
+  'qwen-image-edit-max': 'edit',
+  'qwen-image-edit-max-2026-01-16': 'edit',
+  'qwen-image-edit-plus': 'edit',
+  'qwen-image-edit-plus-2025-12-15': 'edit',
+  'qwen-image-edit-plus-2025-10-30': 'edit',
+  'qwen-image-edit': 'edit',
+  // 千问文生图
+  'qwen-image-2.0-pro': 't2i',
+  'qwen-image-2.0-pro-2026-03-03': 't2i',
+  'qwen-image-2.0': 't2i',
+  'qwen-image-2.0-2026-03-03': 't2i',
+  'qwen-image-plus': 't2i',
+  'qwen-image-max': 't2i',
+  // 万相文生图
+  'wan2.6-t2i': 'wan-t2i',
+  'wan2.5-t2i-preview': 'wan-t2i',
+  'wan2.2-t2i-plus': 'wan-t2i',
+  'wan2.2-t2i-flash': 'wan-t2i',
+  // 万相图像编辑
+  'wan2.6-image-edit': 'wan-edit',
+  'wan2.5-image-edit': 'wan-edit',
+  'wan2.1-image-edit': 'wan-edit',
+};
 
 export const alibabaProvider: ImageProvider = {
   id: 'alibaba',
   name: 'Alibaba DashScope',
   models: [
-    { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro' },
-    { id: 'qwen-image-2.0', name: 'Qwen Image 2.0' },
-    { id: 'qwen-image-edit-max', name: 'Qwen Image Edit Max' },
+    // 千问图像编辑 (推荐)
+    { id: 'qwen-image-edit-max', name: 'Qwen Image Edit Max (推荐)' },
     { id: 'qwen-image-edit-plus', name: 'Qwen Image Edit Plus' },
+    // 千问文生图
+    { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro (推荐)' },
+    { id: 'qwen-image-2.0', name: 'Qwen Image 2.0' },
+    // 万相文生图
+    { id: 'wan2.6-t2i', name: '万相 2.6 文生图' },
+    // 万相图像编辑
+    { id: 'wan2.6-image-edit', name: '万相 2.6 图像编辑' },
   ],
 
+  // 获取模型分类
+  getModelCategory(model: string): string {
+    return MODEL_CATEGORIES[model] || 'edit';
+  },
+
   async validateKey(key: string): Promise<boolean> {
-    // Can't validate directly due to CORS, assume valid if not empty
     return key.length > 0;
   },
 
@@ -23,14 +59,26 @@ export const alibabaProvider: ImageProvider = {
     console.log('[Alibaba] Mode:', req.mode);
     console.log('[Alibaba] Model:', req.model);
 
-    // Convert image to base64
+    // 转换图片为 base64
     const imageBase64 = await blobToBase64(req.image);
     console.log('[Alibaba] Image size:', imageBase64.length);
+
+    // 处理多图输入
+    let additionalImages: string[] = [];
+    if (req.images && req.images.length > 0) {
+      for (const img of req.images) {
+        const base64 = await blobToBase64(img);
+        additionalImages.push(base64);
+      }
+    }
 
     let maskBase64: string | undefined;
     if (req.mask) {
       maskBase64 = await blobToBase64(req.mask);
     }
+
+    // 获取模型分类
+    const category = this.getModelCategory?.(req.model || 'qwen-image-edit-max') || 'qwen-edit';
 
     try {
       const response = await fetch(API_ROUTE, {
@@ -40,10 +88,15 @@ export const alibabaProvider: ImageProvider = {
         },
         body: JSON.stringify({
           image: imageBase64,
+          images: additionalImages,
           mask: maskBase64,
-          model: req.model || 'qwen-image-2.0-pro',
+          model: req.model || 'qwen-image-edit-max',
           prompt: req.prompt || 'enhance this image',
           apiKey: apiKey,
+          // 额外参数
+          category: category,
+          outputCount: req.outputCount || 1,
+          size: req.size || '1024x1024',
         }),
       });
 
@@ -58,10 +111,16 @@ export const alibabaProvider: ImageProvider = {
       const data = await response.json();
       console.log('[Alibaba] Response received');
 
+      if (data.images && data.images.length > 0) {
+        // 多图返回，取第一张
+        const firstImage = data.images[0];
+        const responseBlob = await fetch(firstImage).then(r => r.blob());
+        return responseBlob;
+      }
+
       if (data.image) {
-        // Convert base64 back to blob
-        const response = await fetch(data.image);
-        return response.blob();
+        const responseBlob = await fetch(data.image).then(r => r.blob());
+        return responseBlob;
       }
 
       throw new Error('No image in response');

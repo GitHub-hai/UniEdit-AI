@@ -26,7 +26,6 @@ export function ImageUploader() {
       const base64 = e.target?.result as string;
       setOriginalImage(base64);
 
-      // Get image dimensions
       const dims = await getImageDimensions(base64);
       setImageInfo({
         ...dims,
@@ -69,8 +68,8 @@ export function ImageUploader() {
 
   if (originalImage) {
     return (
-      <div className="space-y-2">
-        <div className="relative h-32 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+      <div className="space-y-3">
+        <div className="relative h-32 rounded-xl overflow-hidden bg-[#2d2d2f] border border-white/5">
           <img
             src={originalImage}
             alt="Uploaded"
@@ -78,13 +77,13 @@ export function ImageUploader() {
           />
           <button
             onClick={handleClear}
-            className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-sm hover:bg-white transition-colors"
+            className="absolute top-2 right-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-full hover:bg-black/80 transition-all"
           >
-            <X className="w-4 h-4 text-slate-600" />
+            <X className="w-4 h-4 text-white/80" />
           </button>
         </div>
         {imageInfo && (
-          <div className="text-xs text-slate-500 space-y-0.5 px-1">
+          <div className="text-xs text-[#86868b] space-y-1 px-1">
             <div className="flex justify-between">
               <span>尺寸</span>
               <span>{imageInfo.width} × {imageInfo.height}</span>
@@ -117,18 +116,18 @@ export function ImageUploader() {
       />
       <label htmlFor="image-upload" className="cursor-pointer">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-            <Upload className="w-6 h-6 text-blue-600" />
+          <div className="w-12 h-12 rounded-full bg-[#2997ff]/10 flex items-center justify-center">
+            <Upload className="w-5 h-5 text-[#2997ff]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-700">
+            <p className="text-sm font-medium text-white">
               点击上传图片
             </p>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-[#86868b] mt-1">
               或拖拽文件到此处
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-[#86868b]">
             <ImageIcon className="w-3 h-3" />
             <span>JPG, PNG, WebP (最大 20MB)</span>
           </div>

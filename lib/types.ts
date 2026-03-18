@@ -1,6 +1,6 @@
 // Types for UniEdit AI
 
-export type EditMode = 'edit' | 'inpaint' | 'outpaint' | 'upscale';
+export type EditMode = 'edit' | 'inpaint' | 'outpaint' | 'upscale' | 't2i';
 
 export type Provider = 'openai' | 'google' | 'alibaba' | 'replicate' | 'fal' | 'minimax';
 
@@ -14,6 +14,10 @@ export interface EditRequest {
   scale?: number;
   direction?: 'top' | 'bottom' | 'left' | 'right' | 'all';
   ratio?: number;
+  // 阿里千问新增参数
+  outputCount?: number; // 输出图片数量 1-6
+  images?: Blob[]; // 多图输入 1-3张
+  size?: string; // 分辨率如 "1024x1024"
 }
 
 export interface ImageProvider {
@@ -22,6 +26,7 @@ export interface ImageProvider {
   models: { id: string; name: string }[];
   validateKey: (key: string) => Promise<boolean>;
   generate: (req: EditRequest, apiKey: string) => Promise<Blob>;
+  getModelCategory?: (model: string) => string;
 }
 
 export interface HistoryItem {
