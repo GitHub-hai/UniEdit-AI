@@ -79,10 +79,10 @@ export const MODELS: Record<string, { id: string; name: string }[]> = {
     { id: 'imagen-2', name: 'Imagen 2' },
   ],
   alibaba: [
+    { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro (推荐)' },
+    { id: 'qwen-image-2.0', name: 'Qwen Image 2.0' },
     { id: 'qwen-image-edit-max', name: 'Qwen Image Edit Max' },
     { id: 'qwen-image-edit-plus', name: 'Qwen Image Edit Plus' },
-    { id: 'qwen-image-max', name: 'Qwen Image Max' },
-    { id: 'qwen-image-plus', name: 'Qwen Image Plus' },
   ],
   replicate: [
     { id: 'flux-pro', name: 'Flux Pro' },

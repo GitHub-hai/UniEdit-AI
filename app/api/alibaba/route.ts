@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// 正确的 API 端点
-const DASHSCOPE_API_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-to-image/generation';
+// 千问图像编辑 API 端点
+const DASHSCOPE_API_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,35 +16,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing image' }, { status: 400 });
     }
 
-    // 去掉 base64 前缀
-    const imageBase64 = image.replace(/^data:image\/\w+;base64,/, '');
-    let maskBase64 = mask ? mask.replace(/^data:image\/\w+;base64,/, '') : undefined;
+    // 保留完整的 data URL 前缀（包含 mime type）
+    const imageDataUrl = image.startsWith('data:') ? image : `data:image/png;base64,${image}`;
 
-    console.log('[API] Image base64 length:', imageBase64.length);
-
-    // 使用 qwen-image 模型
-    const modelName = model || 'qwen-image-edit-max';
+    // 使用推荐模型
+    const modelName = model || 'qwen-image-2.0-pro';
 
     console.log('[API] Using model:', modelName);
+    console.log('[API] Image data URL prefix:', imageDataUrl.substring(0, 50));
 
-    // 构建请求 - Qwen Image API 格式
+    // 构建请求 - 千问图像编辑 API 格式
     const requestBody: any = {
       model: modelName,
       input: {
-        prompt: prompt || 'enhance this image',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { image: imageDataUrl },
+              { text: prompt || 'enhance this image' }
+            ]
+          }
+        ]
       },
+      parameters: {
+        n: 1,
+        negative_prompt: ' ',
+        prompt_extend: true,
+        watermark: false,
+      }
     };
 
-    // 添加图片 - 只传 base64 数据，不要前缀
-    requestBody.input.image = [{ image: imageBase64 }];
-
-    // 添加 mask（如果有）
-    if (maskBase64) {
-      requestBody.input.image.push({ mask: maskBase64 });
-    }
-
-    console.log('[API] Calling Alibaba with model:', modelName);
-    console.log('[API] Request body keys:', Object.keys(requestBody));
+    console.log('[API] Request body:', JSON.stringify(requestBody).substring(0, 500));
 
     const response = await fetch(DASHSCOPE_API_ENDPOINT, {
       method: 'POST',
@@ -77,16 +80,18 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     console.log('[API] Response:', JSON.stringify(data).substring(0, 500));
 
-    // 尝试多种响应格式
+    // 解析响应 - 千问图像编辑格式
     let imageUrl = null;
 
-    // Format: output.choices[0].message.content[0].image
     if (data.output?.choices?.[0]?.message?.content) {
       const content = data.output.choices[0].message.content;
-      if (Array.isArray(content) && content[0]?.image) {
-        imageUrl = content[0].image;
-      } else if (typeof content === 'string') {
-        imageUrl = content;
+      if (Array.isArray(content)) {
+        for (const item of content) {
+          if (item.image) {
+            imageUrl = item.image;
+            break;
+          }
+        }
       }
     }
 
