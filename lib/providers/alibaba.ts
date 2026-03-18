@@ -1,7 +1,7 @@
 import { ImageProvider, EditRequest } from '../types';
 
-// 华北2（北京）正确地址
-const DASHSCOPE_API_ENDPOINT = 'https://dashscope.aliyuncs.com/compatible-mode/v1/images/generations';
+// Use Next.js API route as proxy to avoid CORS
+const API_ROUTE = '/api/alibaba';
 
 export const alibabaProvider: ImageProvider = {
   id: 'alibaba',
@@ -12,70 +12,61 @@ export const alibabaProvider: ImageProvider = {
   ],
 
   async validateKey(key: string): Promise<boolean> {
-    try {
-      const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${key}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
+    // Can't validate directly due to CORS, assume valid if not empty
+    return key.length > 0;
   },
 
   async generate(req: EditRequest, apiKey: string): Promise<Blob> {
+    console.log('[Alibaba] Starting generation via proxy...');
+    console.log('[Alibaba] Mode:', req.mode);
+    console.log('[Alibaba] Model:', req.model);
+
     // Convert image to base64
     const imageBase64 = await blobToBase64(req.image);
+    console.log('[Alibaba] Image size:', imageBase64.length);
 
-    // Build request body based on mode
-    const requestBody: any = {
-      model: req.model || 'wanx-v2',
-      prompt: req.prompt,
-    };;
-
-    // Different parameters for different modes
-    if (req.mode === 'edit') {
-      // Image editing - send as base64
-      requestBody.image = imageBase64;
-    } else if (req.mode === 'inpaint' && req.mask) {
-      // Inpainting - need mask
-      const maskBase64 = await blobToBase64(req.mask);
-      requestBody.image = imageBase64;
-      requestBody.mask = maskBase64;
-    } else if (req.mode === 'outpaint') {
-      // Outpainting
-      requestBody.image = imageBase64;
-      requestBody.size = '1920x1080';
-    } else if (req.mode === 'upscale') {
-      // Upscaling
-      requestBody.image = imageBase64;
+    let maskBase64: string | undefined;
+    if (req.mask) {
+      maskBase64 = await blobToBase64(req.mask);
     }
 
-    const response = await fetch(DASHSCOPE_API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    try {
+      const response = await fetch(API_ROUTE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: imageBase64,
+          mask: maskBase64,
+          model: req.model || 'wanx-v2',
+          prompt: req.prompt || 'enhance this image',
+          apiKey: apiKey,
+        }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error?.message || error.message || `API Error: ${response.status}`);
+      console.log('[Alibaba] Response status:', response.status);
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('[Alibaba] Error:', error);
+        throw new Error(error.error || 'API Error');
+      }
+
+      const data = await response.json();
+      console.log('[Alibaba] Response received');
+
+      if (data.image) {
+        // Convert base64 back to blob
+        const response = await fetch(data.image);
+        return response.blob();
+      }
+
+      throw new Error('No image in response');
+    } catch (error) {
+      console.error('[Alibaba] Fetch error:', error);
+      throw error;
     }
-
-    const data = await response.json();
-
-    if (data.data && data.data[0] && data.data[0].url) {
-      const imageUrl = data.data[0].url;
-      const imageResponse = await fetch(imageUrl);
-      return imageResponse.blob();
-    }
-
-    throw new Error('No image generated');
   },
 };
 

@@ -108,7 +108,13 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       toast.success('生成完成!', { id: 'generating' });
     } catch (error) {
       console.error('Generation error:', error);
-      toast.error(error instanceof Error ? error.message : '生成失败，请重试', { id: 'generating' });
+      const errorMsg = error instanceof Error ? error.message : '生成失败，请重试';
+      // Check for common errors
+      if (errorMsg.includes('Failed to fetch')) {
+        toast.error('网络请求失败，请检查网络或API Key是否正确', { id: 'generating' });
+      } else {
+        toast.error(errorMsg, { id: 'generating' });
+      }
     } finally {
       setIsLoading(false);
     }
