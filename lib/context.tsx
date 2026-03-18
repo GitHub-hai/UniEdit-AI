@@ -50,10 +50,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Save history to localStorage
+  // Save history to localStorage (limit to 5 items to avoid quota exceeded)
   useEffect(() => {
     if (state.history.length > 0) {
-      localStorage.setItem('uniedit-history', JSON.stringify(state.history.slice(0, 10)));
+      try {
+        const limitedHistory = state.history.slice(0, 5);
+        localStorage.setItem('uniedit-history', JSON.stringify(limitedHistory));
+      } catch (e) {
+        // If quota exceeded, clear old history
+        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+          console.warn('localStorage quota exceeded, clearing history');
+          localStorage.removeItem('uniedit-history');
+        }
+      }
     }
   }, [state.history]);
 
