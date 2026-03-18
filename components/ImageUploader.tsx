@@ -69,8 +69,8 @@ export function ImageUploader() {
 
   if (originalImage) {
     return (
-      <div className="space-y-3">
-        <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+      <div className="space-y-2">
+        <div className="relative h-32 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
           <img
             src={originalImage}
             alt="Uploaded"
@@ -84,7 +84,7 @@ export function ImageUploader() {
           </button>
         </div>
         {imageInfo && (
-          <div className="text-xs text-slate-500 space-y-1 px-1">
+          <div className="text-xs text-slate-500 space-y-0.5 px-1">
             <div className="flex justify-between">
               <span>尺寸</span>
               <span>{imageInfo.width} × {imageInfo.height}</span>

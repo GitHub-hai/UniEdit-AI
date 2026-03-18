@@ -129,7 +129,7 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       <Toaster position="top-center" />
 
       {/* Image Upload */}
-      <div className="p-4 border-b border-slate-200">
+      <div className="p-3 border-b border-slate-200 shrink-0">
         <ImageUploader />
       </div>
 
@@ -137,7 +137,7 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       <ModeTabs />
 
       {/* Mode Controls */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
         <ModeControls
           onUndo={onUndo}
           onRedo={onRedo}
