@@ -29,22 +29,32 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     miniMaxKey,
   } = useApp();
 
-  // Edit mode - show prompt textarea
+  // Edit mode expand/collapse state
+  const [isEditExpanded, setIsEditExpanded] = useState(true);
+
+  // Edit mode - show prompt textarea with collapse
   if (activeMode === 'edit') {
     return (
       <div className="space-y-3">
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-slate-700">
             编辑指令
           </label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="描述你想要的修改，如：添加更多的云朵，使画面更明亮..."
-            className="textarea"
-            rows={4}
-          />
+          <button
+            type="button"
+            onClick={() => setIsEditExpanded(!isEditExpanded)}
+            className="text-xs text-blue-600 hover:text-blue-700"
+          >
+            {isEditExpanded ? '收起' : '展开'}
+          </button>
         </div>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="描述你想要的修改，如：添加更多的云朵，使画面更明亮..."
+          className="textarea"
+          rows={isEditExpanded ? 8 : 3}
+        />
         <PromptEnhancerInline />
       </div>
     );
@@ -200,9 +210,24 @@ function PromptEnhancerInline() {
   const [input, setInput] = useState('');
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedExamples, setSelectedExamples] = useState<string[]>([]);
+
+  // Example prompts for quick reference
+  const examplePrompts = [
+    '让天空更蓝',
+    '添加夕阳效果',
+    '换成冬天雪景',
+    '添加更多云朵',
+    '使画面更明亮',
+    '添加复古滤镜',
+    '添加彩虹',
+    '换成夜景',
+    '添加花朵',
+    '增强色彩',
+  ];
 
   const handleOptimize = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() && selectedExamples.length === 0) return;
 
     if (!miniMaxKey) {
       setError('请先在设置中配置 MiniMax API Key');
@@ -216,10 +241,30 @@ function PromptEnhancerInline() {
       const optimized = await optimizePrompt(input, miniMaxKey);
       setPrompt(optimized);
       setInput('');
+      setSelectedExamples([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : '优化失败');
     } finally {
       setIsOptimizing(false);
+    }
+  };
+
+  // Multi-select: toggle example selection
+  const handleExampleClick = (example: string) => {
+    setSelectedExamples((prev) => {
+      if (prev.includes(example)) {
+        return prev.filter((e) => e !== example);
+      }
+      return [...prev, example];
+    });
+  };
+
+  // Apply selected examples to AI optimize input
+  const handleApplyExamples = () => {
+    if (selectedExamples.length > 0) {
+      const combined = selectedExamples.join('，');
+      setInput(combined);
+      setSelectedExamples([]);
     }
   };
 
@@ -236,7 +281,7 @@ function PromptEnhancerInline() {
         />
         <button
           onClick={handleOptimize}
-          disabled={!input.trim() || isOptimizing || !miniMaxKey}
+          disabled={(!input.trim() && selectedExamples.length === 0) || isOptimizing || !miniMaxKey}
           className="btn-primary px-3 flex items-center gap-1.5"
         >
           {isOptimizing ? (
@@ -246,6 +291,39 @@ function PromptEnhancerInline() {
           )}
         </button>
       </div>
+
+      {/* Example prompts - multi-select */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-slate-500">试试可以这样写（可多选）：</p>
+          {selectedExamples.length > 0 && (
+            <button
+              type="button"
+              onClick={handleApplyExamples}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            >
+              填入编辑框 ({selectedExamples.length})
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {examplePrompts.map((example) => (
+            <button
+              key={example}
+              type="button"
+              onClick={() => handleExampleClick(example)}
+              className={`text-xs px-2 py-1 rounded transition-colors ${
+                selectedExamples.includes(example)
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+              }`}
+            >
+              {example}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {error && <p className="text-xs text-red-500">{error}</p>}
       {!miniMaxKey && (
         <p className="text-xs text-amber-600">

@@ -125,7 +125,7 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
   );
 
   return (
-    <div className="w-full lg:w-80 xl:w-96 bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden">
+    <div className="w-full lg:w-96 xl:w-[500px] bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden">
       <Toaster position="top-center" />
 
       {/* Image Upload */}
