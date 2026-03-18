@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Qwen Image API 端点
-const DASHSCOPE_API_ENDPOINT = 'https://dashscope.aliyuncs.com/compatible-mode/v1/images/generations';
+// 正确的 API 端点
+const DASHSCOPE_API_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-to-image/generation';
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,14 +21,22 @@ export async function POST(req: NextRequest) {
 
     console.log('[API] Using model:', modelName);
 
+    // 构建请求 - Qwen Image API 格式
     const requestBody: any = {
       model: modelName,
-      prompt: prompt || 'enhance this image',
-      image: image,
+      input: {
+        prompt: prompt || 'enhance this image',
+      },
     };
 
+    // 添加图片到 input
+    if (image) {
+      requestBody.input.image = [{ image: image }];
+    }
+
+    // 添加 mask（如果有）
     if (mask) {
-      requestBody.mask = mask;
+      requestBody.input.image.push({ mask: mask });
     }
 
     console.log('[API] Calling Alibaba with model:', modelName);
@@ -50,7 +58,7 @@ export async function POST(req: NextRequest) {
       try {
         const errorJson = JSON.parse(errorText);
         return NextResponse.json(
-          { error: errorJson.error?.message || errorJson.message || `API Error: ${response.status}` },
+          { error: errorJson.message || errorJson.code || `API Error: ${response.status}` },
           { status: response.status }
         );
       } catch {
@@ -62,24 +70,18 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('[API] Response data:', JSON.stringify(data).substring(0, 300));
+    console.log('[API] Response:', JSON.stringify(data).substring(0, 500));
 
     // 尝试多种响应格式
     let imageUrl = null;
 
-    // Format 1: data[0].url
-    if (data.data && data.data[0] && data.data[0].url) {
-      imageUrl = data.data[0].url;
-    }
-    // Format 2: output.choices[0].message.content
-    else if (data.output && data.output.choices && data.output.choices[0]) {
-      const content = data.output.choices[0].message?.content;
-      if (content) {
-        if (typeof content === 'string') {
-          imageUrl = content;
-        } else if (Array.isArray(content)) {
-          imageUrl = content[0]?.image || content[0]?.url;
-        }
+    // Format: output.choices[0].message.content[0].image
+    if (data.output?.choices?.[0]?.message?.content) {
+      const content = data.output.choices[0].message.content;
+      if (Array.isArray(content) && content[0]?.image) {
+        imageUrl = content[0].image;
+      } else if (typeof content === 'string') {
+        imageUrl = content;
       }
     }
 
