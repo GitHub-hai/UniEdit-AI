@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // 千问 API 端点
 const DASHSCOPE_BASE = 'https://dashscope.aliyuncs.com/api/v1/services/aigc';
 
-// 图像生成/编辑端点（千问和万相文生图都使用这个）
+// 图像生成/编辑端点（千问使用这个）
 const IMAGE_GEN_ENDPOINT = `${DASHSCOPE_BASE}/multimodal-generation/generation`;
-// 万相图像编辑端点
+// 万相文生图端点 (wanx-v1)
+const WAN_IMAGE_GEN_ENDPOINT = `${DASHSCOPE_BASE}/wanx/wanx_image_generation`;
+// 万相图像编辑端点 (已废弃)
 const WAN_IMAGE_EDIT_ENDPOINT = `${DASHSCOPE_BASE}/image-edit/edit`;
 
 // 模型分类映射
@@ -24,15 +26,8 @@ const MODEL_CATEGORIES: Record<string, string> = {
   'qwen-image-2.0-2026-03-03': 'qwen-t2i',
   'qwen-image-plus': 'qwen-t2i',
   'qwen-image-max': 'qwen-t2i',
-  // 万相文生图
-  'wan2.6-t2i': 'wan-t2i',
-  'wan2.5-t2i-preview': 'wan-t2i',
-  'wan2.2-t2i-plus': 'wan-t2i',
-  'wan2.2-t2i-flash': 'wan-t2i',
-  // 万相图像编辑
-  'wan2.6-image-edit': 'wan-edit',
-  'wan2.5-image-edit': 'wan-edit',
-  'wan2.1-image-edit': 'wan-edit',
+  // 万相文生图 (wanx-v1)
+  'wanx-v1': 'wan-t2i',
 };
 
 // 获取模型分类
@@ -48,8 +43,8 @@ function getEndpoint(category: string): string {
       // 千问编辑和千问文生图都使用 multimodal-generation 端点
       return IMAGE_GEN_ENDPOINT;
     case 'wan-t2i':
-      // 万相文生图也使用 multimodal-generation 端点（与千问相同）
-      return IMAGE_GEN_ENDPOINT;
+      // 万相文生图使用 wanx 专用端点
+      return WAN_IMAGE_GEN_ENDPOINT;
     case 'wan-edit':
       return WAN_IMAGE_EDIT_ENDPOINT;
     default:
@@ -240,7 +235,7 @@ export async function POST(req: NextRequest) {
     console.log('[API] Request body:', JSON.stringify(requestBody).substring(0, 500));
 
     // 检查是否需要异步调用
-    const needsAsync = modelCategory === 'wan-t2i';
+    const needsAsync = false; // 暂时禁用异步，该API Key不支持
 
     const response = await fetch(endpoint, {
       method: 'POST',

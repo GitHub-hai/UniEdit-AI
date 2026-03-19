@@ -18,15 +18,10 @@ const MODEL_CATEGORIES: Record<string, string> = {
   'qwen-image-2.0-2026-03-03': 'qwen-t2i',
   'qwen-image-plus': 'qwen-t2i',
   'qwen-image-max': 'qwen-t2i',
-  // 万相文生图
-  'wan2.6-t2i': 'wan-t2i',
-  'wan2.5-t2i-preview': 'wan-t2i',
-  'wan2.2-t2i-plus': 'wan-t2i',
-  'wan2.2-t2i-flash': 'wan-t2i',
-  // 万相图像编辑
-  'wan2.6-image-edit': 'wan-edit',
-  'wan2.5-image-edit': 'wan-edit',
-  'wan2.1-image-edit': 'wan-edit',
+  // 万相文生图 (wanx-v1)
+  'wanx-v1': 'wan-t2i',
+  // 万相图像编辑 (已废弃，API Key不支持)
+  // 'wan2.6-image-edit': 'wan-edit', // Model not exist
 };
 
 export const alibabaProvider: ImageProvider = {
@@ -40,9 +35,7 @@ export const alibabaProvider: ImageProvider = {
     { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro (推荐)' },
     { id: 'qwen-image-2.0', name: 'Qwen Image 2.0' },
     // 万相文生图
-    { id: 'wan2.6-t2i', name: '万相 2.6 文生图' },
-    // 万相图像编辑
-    { id: 'wan2.6-image-edit', name: '万相 2.6 图像编辑' },
+    { id: 'wanx-v1', name: '万相 Wanx V1 (文生图)' },
   ],
 
   // 获取模型分类
