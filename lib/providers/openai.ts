@@ -22,6 +22,10 @@ export const openAIProvider: ImageProvider = {
   },
 
   async generate(req: EditRequest, apiKey: string): Promise<Blob> {
+    if (!req.image) {
+      throw new Error('OpenAI DALL-E requires an image');
+    }
+
     const formData = new FormData();
 
     // Add image

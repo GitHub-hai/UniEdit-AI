@@ -171,6 +171,8 @@ export const minimaxProvider: ImageProvider = {
     }
 
     try {
+      console.log('[MiniMax] Calling API route:', API_ROUTE);
+
       const response = await fetch(API_ROUTE, {
         method: 'POST',
         headers: {
@@ -196,6 +198,9 @@ export const minimaxProvider: ImageProvider = {
           // I2I 模式
           subject_reference: subjectReference,
         }),
+      }).catch(networkErr => {
+        console.error('[MiniMax] Network error:', networkErr);
+        throw new Error(`网络请求失败: ${networkErr.message || '请检查服务器是否运行'}`);
       });
 
       console.log('[MiniMax] Response status:', response.status);

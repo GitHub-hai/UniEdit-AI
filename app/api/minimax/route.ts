@@ -119,17 +119,33 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('[MiniMax API] Request body:', JSON.stringify(requestBody).substring(0, 500));
+    console.log('[MiniMax API] API Key length:', apiKey?.length);
 
-    const response = await fetch(MINIMAX_API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    let response;
+    try {
+      console.log('[MiniMax API] Calling MiniMax endpoint:', MINIMAX_API_ENDPOINT);
+      console.log('[MiniMax API] With auth header:', `Bearer ${apiKey?.substring(0, 10)}...`);
 
-    console.log('[MiniMax API] Response status:', response.status);
+      response = await fetch(MINIMAX_API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('[MiniMax API] Response status:', response.status);
+    } catch (fetchErr) {
+      console.error('[MiniMax API] Fetch failed:', fetchErr);
+      console.error('[MiniMax API] Fetch error name:', fetchErr?.name);
+      console.error('[MiniMax API] Fetch error message:', fetchErr?.message);
+      console.error('[MiniMax API] Fetch error cause:', fetchErr?.cause);
+      return NextResponse.json(
+        { error: `网络请求失败: ${fetchErr?.message || '无法连接到 MiniMax API'}` },
+        { status: 500 }
+      );
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

@@ -1,4 +1,5 @@
 import imageCompression from 'browser-image-compression';
+import { base64ToBlob } from './utils';
 
 export interface PreprocessorOptions {
   provider: string;
@@ -14,7 +15,7 @@ export async function preprocessImage(
   const { provider, maxDimension = 2048, quality = 0.9 } = options;
 
   // Convert base64 to blob
-  const blob = await fetch(base64Image).then(res => res.blob());
+  const blob = base64ToBlob(base64Image);
 
   // Get original dimensions
   const img = await loadImage(base64Image);
