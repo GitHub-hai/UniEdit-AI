@@ -58,11 +58,13 @@ export async function POST(req: NextRequest) {
     const needsImage = modelCategory !== 'minimax-live' && !subject_reference;
     const hasImageInput = !!image;
 
-    // 如果是 I2I 但没有图片，也没有 subject_reference，报错
+    // T2I 模式不需要图片，I2I 模式才需要
     // 注意：MiniMax I2I 可以只通过 subject_reference 来引用图片，不需要直接传图片
-    if (!hasImageInput && !subject_reference && modelCategory === 'minimax-t2i') {
-      // 允许纯 T2I 模式
-      console.log('[MiniMax API] T2I mode (no image)');
+    if (needsImage && !hasImageInput && !subject_reference) {
+      // 这是 I2I 模式但没有图片
+      console.log('[MiniMax API] I2I mode but no image provided');
+    } else {
+      console.log('[MiniMax API] T2I mode (no image required)');
     }
 
     // 构建请求体
@@ -88,8 +90,8 @@ export async function POST(req: NextRequest) {
     if (response_format) {
       requestBody.response_format = response_format;
     } else {
-      // 默认返回 base64，避免 URL 过期问题
-      requestBody.response_format = 'base64';
+      // 默认返回 url，与文档示例一致
+      requestBody.response_format = 'url';
     }
 
     if (seed !== undefined && seed !== null) {

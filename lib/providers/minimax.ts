@@ -140,6 +140,9 @@ export const minimaxProvider: ImageProvider = {
           image_file: imageBase64, // MiniMax 支持 base64
         },
       ];
+    } else if (!isI2I) {
+      // T2I 模式不发送任何图片相关字段
+      subjectReference = undefined;
     }
 
     // 获取 aspect_ratio
@@ -174,7 +177,8 @@ export const minimaxProvider: ImageProvider = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          image: imageBase64,
+          // 只在 I2I 模式发送图片
+          ...(isI2I && { image: imageBase64 }),
           model: model,
           prompt: req.prompt || 'enhance this image',
           apiKey: apiKey,
@@ -188,7 +192,7 @@ export const minimaxProvider: ImageProvider = {
           n: req.outputCount || 1,
           prompt_optimizer: req.prompt_extend,
           aigc_watermark: false,
-          response_format: 'base64',
+          response_format: 'url',
           // I2I 模式
           subject_reference: subjectReference,
         }),
