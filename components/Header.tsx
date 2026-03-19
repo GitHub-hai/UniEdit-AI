@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, Sparkles, Menu } from 'lucide-react';
+import { Settings, Sparkles, Menu, Github } from 'lucide-react';
 import { useApp } from '@/lib/context';
 
 interface HeaderProps {
@@ -32,14 +32,25 @@ export function Header({ onMenuClick }: HeaderProps) {
         </span>
       </div>
 
-      {/* Right: Settings */}
-      <button
-        onClick={() => setIsSettingsOpen(true)}
-        className="p-2.5 rounded-xl hover:bg-white/5 transition-all duration-300 active:scale-95"
-        aria-label="Settings"
-      >
-        <Settings className="w-[18px] h-[18px] text-[#86868b] hover:text-white transition-colors" />
-      </button>
+      {/* Right: GitHub + Settings */}
+      <div className="flex items-center gap-1">
+        <a
+          href="https://github.com/GitHub-hai/UniEdit-AI"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2.5 rounded-xl hover:bg-white/5 transition-all duration-300 active:scale-95"
+          aria-label="GitHub"
+        >
+          <Github className="w-[18px] h-[18px] text-[#86868b] hover:text-white transition-colors" />
+        </a>
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="p-2.5 rounded-xl hover:bg-white/5 transition-all duration-300 active:scale-95"
+          aria-label="Settings"
+        >
+          <Settings className="w-[18px] h-[18px] text-[#86868b] hover:text-white transition-colors" />
+        </button>
+      </div>
     </header>
   );
 }
