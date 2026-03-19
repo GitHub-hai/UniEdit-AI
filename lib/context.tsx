@@ -76,6 +76,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState(prev => ({ ...prev, originalImage: image, resultImage: null }));
   }, []);
 
+  const clearOriginalImageOnly = useCallback(() => {
+    // 仅清空 originalImage，保留 resultImage（用于 t2i 模式恢复结果图）
+    setState(prev => ({ ...prev, originalImage: null }));
+  }, []);
+
   const setResultImage = useCallback((image: string | null) => {
     setState(prev => ({ ...prev, resultImage: image }));
   }, []);
@@ -97,7 +102,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setActiveMode = useCallback((mode: EditMode) => {
-    setState(prev => ({ ...prev, activeMode: mode, maskData: null }));
+    setState(prev => ({ ...prev, activeMode: mode, maskData: null, prompt: '' }));
   }, []);
 
   const setMaskData = useCallback((mask: string | null) => {
@@ -162,6 +167,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value: AppContextType = {
     ...state,
     setOriginalImage,
+    clearOriginalImageOnly,
     setResultImage,
     setApiProvider,
     setApiKey,

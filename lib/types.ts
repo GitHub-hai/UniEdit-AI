@@ -5,7 +5,7 @@ export type EditMode = 'edit' | 'inpaint' | 'outpaint' | 'upscale' | 't2i';
 export type Provider = 'openai' | 'google' | 'alibaba' | 'replicate' | 'fal' | 'minimax';
 
 export interface EditRequest {
-  image: Blob;
+  image?: Blob; // 文生图模式不需要图片
   mask?: Blob;
   prompt: string;
   mode: EditMode;
@@ -60,6 +60,7 @@ export interface AppState {
 
 export interface AppActions {
   setOriginalImage: (image: string | null) => void;
+  clearOriginalImageOnly: () => void;
   setResultImage: (image: string | null) => void;
   setApiProvider: (provider: Provider) => void;
   setApiKey: (key: string) => void;
