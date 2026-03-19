@@ -2,17 +2,19 @@
 
 import { useState } from 'react';
 import { useApp } from '@/lib/context';
-import { Trash2, X, Download } from 'lucide-react';
+import { Trash2, X, Download, ChevronDown, ChevronUp } from 'lucide-react';
 
 export function HistoryPanel() {
   const { history, clearHistory, setPrompt, setActiveMode, setResultImage, clearOriginalImageOnly } = useApp();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (history.length === 0) {
     return null;
   }
 
   const handleItemClick = (item: typeof history[0]) => {
+    if (isCollapsed) return;
     setPrompt(item.prompt);
     setActiveMode(item.mode);
     // 对于文生图模式，恢复结果图片并清空原图
@@ -34,19 +36,39 @@ export function HistoryPanel() {
     <>
       <div className="border-t border-white/5 bg-[#1d1d1f]/95 backdrop-blur-sm p-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-white">历史记录</h3>
-          <button
-            type="button"
-            onClick={clearHistory}
-            className="p-1.5 rounded-lg hover:bg-white/5 transition-colors"
-            title="清空历史"
-          >
-            <Trash2 className="w-4 h-4 text-[#86868b]" />
-          </button>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-white">历史记录</h3>
+            <span className="text-xs text-[#86868b]">{history.length}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-1.5 rounded-lg hover:bg-white/5 transition-colors"
+              title={isCollapsed ? '展开' : '收起'}
+            >
+              {isCollapsed ? (
+                <ChevronDown className="w-4 h-4 text-[#86868b]" />
+              ) : (
+                <ChevronUp className="w-4 h-4 text-[#86868b]" />
+              )}
+            </button>
+            {!isCollapsed && (
+              <button
+                type="button"
+                onClick={clearHistory}
+                className="p-1.5 rounded-lg hover:bg-white/5 transition-colors"
+                title="清空历史"
+              >
+                <Trash2 className="w-4 h-4 text-[#86868b]" />
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {history.map((item) => (
+        {!isCollapsed && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {history.map((item) => (
             <div key={item.id} className="shrink-0 group relative">
               <button
                 type="button"
@@ -83,6 +105,7 @@ export function HistoryPanel() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* 图片预览弹窗 */}
