@@ -112,10 +112,16 @@ export async function POST(req: NextRequest) {
       requestBody.aigc_watermark = aigc_watermark;
     }
 
-    // I2I 模式：添加 subject_reference
+    // I2I 模式：添加 subject_reference 和 image
     if (subject_reference && subject_reference.length > 0) {
       requestBody.subject_reference = subject_reference;
       console.log('[MiniMax API] I2I mode with subject_reference');
+    }
+
+    // 添加图片 (I2I 模式)
+    if (image) {
+      requestBody.image = image;
+      console.log('[MiniMax API] Adding image to request');
     }
 
     console.log('[MiniMax API] Request body:', JSON.stringify(requestBody).substring(0, 500));
@@ -193,27 +199,44 @@ export async function POST(req: NextRequest) {
 
     const images: string[] = [];
 
+    console.log('[MiniMax API] Response data keys:', Object.keys(data));
+    console.log('[MiniMax API] data.data:', data.data);
+    console.log('[MiniMax API] data.data type:', typeof data.data);
+    if (data.data) {
+      console.log('[MiniMax API] data.data keys:', Object.keys(data.data));
+    }
+
     // 处理 image_urls (URL 格式)
-    if (data.data?.image_urls && Array.isArray(data.data.image_urls)) {
-      for (const imgUrl of data.data.image_urls) {
+    // MiniMax 返回格式可能是 data.data.image_urls 或 data.data.data.image_urls
+    const imageUrls = data.data?.image_urls || data.data?.data?.image_urls;
+    if (imageUrls && Array.isArray(imageUrls)) {
+      console.log('[MiniMax API] Found image_urls:', imageUrls.length);
+      for (const imgUrl of imageUrls) {
         // 下载图片并转换为 base64
         try {
+          console.log('[MiniMax API] Downloading:', imgUrl.substring(0, 80));
           const imageResponse = await fetch(imgUrl);
+          if (!imageResponse.ok) {
+            console.error('[MiniMax API] Failed to fetch image, status:', imageResponse.status);
+            continue;
+          }
           const imageBlob = await imageResponse.blob();
           const base64 = await blobToBase64(imageBlob);
           images.push(base64);
+          console.log('[MiniMax API] Downloaded successfully, size:', imageBlob.size);
         } catch (e) {
           console.error('[MiniMax API] Failed to download image:', e);
         }
       }
+    } else {
+      console.log('[MiniMax API] No image_urls found in response');
     }
 
     // 处理 base64_data (直接返回 base64)
-    if (data.data?.base64_data) {
-      const base64Data = Array.isArray(data.data.base64_data)
-        ? data.data.base64_data
-        : [data.data.base64_data];
-      for (const b64 of base64Data) {
+    const base64Data = data.data?.base64_data || data.data?.data?.base64_data;
+    if (base64Data) {
+      const base64Array = Array.isArray(base64Data) ? base64Data : [base64Data];
+      for (const b64 of base64Array) {
         if (b64) {
           images.push(`data:image/png;base64,${b64}`);
         }
@@ -228,6 +251,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ images });
     }
 
+    console.log('[MiniMax API] No images extracted, returning error');
     return NextResponse.json({ error: 'No image in response', details: data }, { status: 500 });
 
   } catch (error) {
