@@ -62,9 +62,9 @@ function getEndpoint(category: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { image, images: additionalImages, mask, model, prompt, apiKey, category, outputCount, size, mode, direction, ratio } = body;
+    const { image, images: additionalImages, mask, model, prompt, apiKey, category, outputCount, size, mode, direction, ratio, negative_prompt, prompt_extend, seed, strength } = body;
 
-    console.log('[API] Received image:', !!image, 'mode:', mode, 'model:', model, 'category:', category, 'direction:', direction, 'ratio:', ratio);
+    console.log('[API] Received image:', !!image, 'mode:', mode, 'model:', model, 'category:', category, 'direction:', direction, 'ratio:', ratio, 'negative_prompt:', negative_prompt, 'prompt_extend:', prompt_extend, 'seed:', seed);
 
     if (!apiKey) {
       return NextResponse.json({ error: 'Missing API key' }, { status: 400 });
@@ -97,6 +97,7 @@ export async function POST(req: NextRequest) {
 
     if (modelCategory === 'qwen-edit') {
       // 千问图像编辑 API 格式
+      // 注意：千问编辑不需要 mask 参数，局部重绘通过提示词描述即可
       const messages: any[] = [
         { image: imageDataUrl },
         { text: prompt || 'enhance this image' }
@@ -110,19 +111,17 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // 处理 mask (局部重绘) - qwen-edit 模型需要在 content 数组中单独传入 mask
-      const maskDataUrl = mask ? (mask.startsWith('data:') ? mask : `data:image/png;base64,${mask}`) : undefined;
+      // 构建输入消息
+      const inputMessages: any = {
+        role: 'user',
+        content: messages
+      };
 
-      // 局部重绘模式需要添加 mask 到 content 数组
-      if (mode === 'inpaint' && maskDataUrl) {
-        messages.push({ mask: maskDataUrl });
-      }
-
-      // 智能扩图模式 - 千问编辑模型也支持 outpaint 参数
+      // 智能扩图模式 - 千问编辑模型支持 extra.outpaint 参数
+      const input: any = { messages: [inputMessages] };
       if (mode === 'outpaint' && direction && ratio) {
         console.log('[API] Outpaint for qwen-edit - direction:', direction, 'ratio:', ratio);
-        // 千问编辑 API 通过 extra.outpaint 参数支持扩图
-        (requestBody as any).extra = {
+        input.extra = {
           outpaint: {
             direction: direction === 'all' ? ['top', 'bottom', 'left', 'right'] : [direction],
             ratio: ratio / 100,
@@ -132,18 +131,15 @@ export async function POST(req: NextRequest) {
 
       requestBody = {
         model: modelName,
-        input: {
-          messages: [
-            {
-              role: 'user',
-              content: messages
-            }
-          ]
-        },
+        input,
         parameters: {
           n: outputCount || 1, // 多图输出
           size: size || '1024*1024',
           watermark: false,
+          // 千问新增参数
+          ...(negative_prompt && { negative_prompt }),
+          prompt_extend: prompt_extend !== false, // 默认开启
+          ...(seed !== undefined && seed !== null && { seed }),
         }
       };
     } else if (modelCategory === 'qwen-t2i') {
@@ -182,8 +178,17 @@ export async function POST(req: NextRequest) {
       // 处理 mask (局部重绘)
       const maskDataUrl = mask ? (mask.startsWith('data:') ? mask : `data:image/png;base64,${mask}`) : undefined;
 
+      // 根据 mode 设置正确的 function
+      let functionName = 'description_edit'; // 默认指令编辑
+      if (mode === 'inpaint' && maskDataUrl) {
+        functionName = 'description_edit_with_mask';
+      } else if (mode === 'outpaint') {
+        functionName = 'image_expand';
+      }
+
       // 构建 input 对象
       const input: any = {
+        function: functionName,
         images: inputImages,
         prompt: prompt || 'enhance this image',
       };
@@ -193,10 +198,10 @@ export async function POST(req: NextRequest) {
         input.mask = maskDataUrl;
       }
 
-      // 智能扩图模式需要 outpaint 参数
+      // 智能扩图模式 - 万相使用 image_expand function，通过 extra 指定扩图参数
       if (mode === 'outpaint' && direction && ratio) {
         input.extra = {
-          outpaint: {
+          image_expand: {
             direction: direction === 'all' ? ['top', 'bottom', 'left', 'right'] : [direction],
             ratio: ratio / 100, // 转换为百分比 (10-50 -> 0.1-0.5)
           }
@@ -209,6 +214,8 @@ export async function POST(req: NextRequest) {
         parameters: {
           n: outputCount || 1,
           size: size || '1024*1024',
+          // 万相 strength 参数，控制修改幅度 (0.0-1.0，默认 0.5)
+          ...(strength !== undefined && { strength: strength || 0.5 }),
         }
       };
     } else if (modelCategory === 'wan-t2i') {

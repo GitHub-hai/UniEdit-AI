@@ -20,6 +20,11 @@ const initialState: AppState = {
   outpaintDirection: 'all',
   outpaintRatio: 20,
   upscaleScale: 2,
+  // 千问/万相高级参数
+  negativePrompt: '',
+  promptExtend: true,
+  seed: null,
+  strength: 0.5,
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -137,6 +142,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState(prev => ({ ...prev, upscaleScale: scale }));
   }, []);
 
+  const setNegativePrompt = useCallback((negativePrompt: string) => {
+    setState(prev => ({ ...prev, negativePrompt }));
+  }, []);
+
+  const setPromptExtend = useCallback((promptExtend: boolean) => {
+    setState(prev => ({ ...prev, promptExtend }));
+  }, []);
+
+  const setSeed = useCallback((seed: number | null) => {
+    setState(prev => ({ ...prev, seed }));
+  }, []);
+
+  const setStrength = useCallback((strength: number) => {
+    setState(prev => ({ ...prev, strength }));
+  }, []);
+
   const addToHistory = useCallback((item: Omit<HistoryItem, 'id' | 'timestamp'>) => {
     const newItem: HistoryItem = {
       ...item,
@@ -182,6 +203,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOutpaintDirection,
     setOutpaintRatio,
     setUpscaleScale,
+    setNegativePrompt,
+    setPromptExtend,
+    setSeed,
+    setStrength,
     addToHistory,
     clearHistory,
     reset,

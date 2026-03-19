@@ -37,11 +37,15 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     setIsLoading,
     setIsSettingsOpen,
     addToHistory,
+    negativePrompt,
+    promptExtend,
+    seed,
+    strength,
   } = useApp();
 
   const handleGenerate = useCallback(async () => {
     // 检查是否需要图片：根据 mode 和 model category 共同判断
-    const modelCategory = alibabaProvider.getModelCategory(model || 'qwen-image-edit-max');
+    const modelCategory = alibabaProvider.getModelCategory!(model || 'qwen-image-edit-max');
     const isT2iMode = activeMode === 't2i' || modelCategory === 'qwen-t2i' || modelCategory === 'wan-t2i';
     if (!originalImage && !isT2iMode) {
       toast.error('请先上传图片');
@@ -116,6 +120,11 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
           // 扩图模式参数
           direction: activeMode === 'outpaint' ? outpaintDirection : undefined,
           ratio: activeMode === 'outpaint' ? outpaintRatio : undefined,
+          // 千问/万相高级参数
+          negative_prompt: negativePrompt || undefined,
+          prompt_extend: promptExtend,
+          seed: seed ?? undefined,
+          strength: strength,
         },
         apiKey
       );
@@ -146,10 +155,10 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     } finally {
       setIsLoading(false);
     }
-  }, [originalImage, apiKey, apiProvider, model, activeMode, prompt, upscaleScale, setIsLoading, setResultImage, addToHistory, setIsSettingsOpen]);
+  }, [originalImage, apiKey, apiProvider, model, activeMode, prompt, upscaleScale, negativePrompt, promptExtend, seed, strength, setIsLoading, setResultImage, addToHistory, setIsSettingsOpen]);
 
   // 文生图模式不需要图片，其他模式需要（根据 mode 和 model category 共同判断）
-  const modelCategory = alibabaProvider.getModelCategory(model || 'qwen-image-edit-max');
+  const modelCategory = alibabaProvider.getModelCategory!(model || 'qwen-image-edit-max');
   const needsImage = activeMode !== 't2i' && modelCategory !== 'qwen-t2i' && modelCategory !== 'wan-t2i';
   const canGenerate = (!needsImage || originalImage) && !isLoading && (
     activeMode === 'upscale' || activeMode === 't2i' || prompt.trim().length > 0

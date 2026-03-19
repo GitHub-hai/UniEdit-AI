@@ -18,6 +18,12 @@ export interface EditRequest {
   outputCount?: number; // 输出图片数量 1-6
   images?: Blob[]; // 多图输入 1-3张
   size?: string; // 分辨率如 "1024x1024"
+  // 千问支持
+  negative_prompt?: string; // 反向提示词
+  prompt_extend?: boolean; // 提示词智能改写 (默认开启)
+  seed?: number; // 随机种子
+  // 万相支持
+  strength?: number; // 修改幅度 0.0-1.0
 }
 
 export interface ImageProvider {
@@ -56,6 +62,11 @@ export interface AppState {
   outpaintDirection: 'top' | 'bottom' | 'left' | 'right' | 'all';
   outpaintRatio: number;
   upscaleScale: number;
+  // 千问/万相高级参数
+  negativePrompt: string;
+  promptExtend: boolean;
+  seed: number | null;
+  strength: number;
 }
 
 export interface AppActions {
@@ -75,6 +86,11 @@ export interface AppActions {
   setOutpaintDirection: (direction: 'top' | 'bottom' | 'left' | 'right' | 'all') => void;
   setOutpaintRatio: (ratio: number) => void;
   setUpscaleScale: (scale: number) => void;
+  // 千问/万相高级参数
+  setNegativePrompt: (negativePrompt: string) => void;
+  setPromptExtend: (promptExtend: boolean) => void;
+  setSeed: (seed: number | null) => void;
+  setStrength: (strength: number) => void;
   addToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
   clearHistory: () => void;
   reset: () => void;

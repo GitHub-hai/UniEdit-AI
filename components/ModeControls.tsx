@@ -27,6 +27,14 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     upscaleScale,
     setUpscaleScale,
     miniMaxKey,
+    negativePrompt,
+    setNegativePrompt,
+    promptExtend,
+    setPromptExtend,
+    seed,
+    setSeed,
+    strength,
+    setStrength,
   } = useApp();
 
   const [isEditExpanded, setIsEditExpanded] = useState(true);
@@ -62,6 +70,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
           rows={isEditExpanded ? 8 : 3}
         />
         <PromptEnhancerInline />
+        <AdvancedParams />
       </div>
     );
   }
@@ -252,6 +261,7 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
           rows={6}
         />
         <PromptEnhancerInline />
+        <AdvancedParams />
       </div>
     );
   }
@@ -380,6 +390,129 @@ function PromptEnhancerInline() {
         <p className="text-xs text-amber-400">
           需要在设置中配置 MiniMax Key 才能使用提示词优化
         </p>
+      )}
+    </div>
+  );
+}
+
+// Advanced parameters for Qianwen/Wanxiang models
+function AdvancedParams() {
+  const {
+    apiProvider,
+    negativePrompt,
+    setNegativePrompt,
+    promptExtend,
+    setPromptExtend,
+    seed,
+    setSeed,
+    strength,
+    setStrength,
+  } = useApp();
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Only show for Alibaba provider
+  if (apiProvider !== 'alibaba') {
+    return null;
+  }
+
+  return (
+    <div className="border border-white/10 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-3 py-2.5 flex items-center justify-between bg-[#2d2d2f] hover:bg-[#3d3d3f] transition-colors"
+      >
+        <span className="text-sm font-medium text-white">高级参数</span>
+        <span className={`text-xs text-[#86868b] transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+          {isExpanded ? '收起' : '展开'}
+        </span>
+      </button>
+
+      {isExpanded && (
+        <div className="p-3 space-y-4 bg-[#1d1d1f]">
+          {/* Negative Prompt */}
+          <div>
+            <label className="text-xs font-medium text-white mb-1.5 block">
+              反向提示词 (千问)
+            </label>
+            <input
+              type="text"
+              value={negativePrompt}
+              onChange={(e) => setNegativePrompt(e.target.value)}
+              placeholder="描述不希望出现的内容，如：模糊、多余的手指..."
+              className="input text-sm"
+            />
+          </div>
+
+          {/* Prompt Extend Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-xs font-medium text-white">提示词扩展</label>
+              <p className="text-xs text-[#86868b]">智能改写提示词，提升生成效果</p>
+            </div>
+            <button
+              type="button"
+              aria-label={promptExtend ? '关闭提示词扩展' : '开启提示词扩展'}
+              onClick={() => setPromptExtend(!promptExtend)}
+              className={`w-11 h-6 rounded-full transition-colors relative ${
+                promptExtend ? 'bg-[#2997ff]' : 'bg-[#3d3d3f]'
+              }`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                  promptExtend ? 'left-6' : 'left-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Seed */}
+          <div>
+            <label className="text-xs font-medium text-white mb-1.5 block">
+              随机种子 (千问)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={seed ?? ''}
+                onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : null)}
+                placeholder="留空则随机生成"
+                className="input text-sm flex-1"
+              />
+              {seed !== null && (
+                <button
+                  type="button"
+                  onClick={() => setSeed(null)}
+                  className="btn-secondary px-3 text-sm"
+                >
+                  重置
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Strength */}
+          <div>
+            <label className="text-xs font-medium text-white mb-1.5 block">
+              修改幅度 (万相): {strength.toFixed(2)}
+            </label>
+            <input
+              type="range"
+              aria-label="修改幅度"
+              min="0"
+              max="1"
+              step="0.05"
+              value={strength}
+              onChange={(e) => setStrength(Number(e.target.value))}
+              className="w-full h-1.5 bg-[#3d3d3f] rounded-lg appearance-none cursor-pointer accent-[#2997ff]"
+            />
+            <div className="flex justify-between text-xs text-[#86868b] mt-1">
+              <span>保持原图</span>
+              <span>大幅修改</span>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

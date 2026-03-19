@@ -5,19 +5,19 @@ const API_ROUTE = '/api/alibaba';
 // 千问模型分类
 const MODEL_CATEGORIES: Record<string, string> = {
   // 图像编辑
-  'qwen-image-edit-max': 'edit',
-  'qwen-image-edit-max-2026-01-16': 'edit',
-  'qwen-image-edit-plus': 'edit',
-  'qwen-image-edit-plus-2025-12-15': 'edit',
-  'qwen-image-edit-plus-2025-10-30': 'edit',
-  'qwen-image-edit': 'edit',
+  'qwen-image-edit-max': 'qwen-edit',
+  'qwen-image-edit-max-2026-01-16': 'qwen-edit',
+  'qwen-image-edit-plus': 'qwen-edit',
+  'qwen-image-edit-plus-2025-12-15': 'qwen-edit',
+  'qwen-image-edit-plus-2025-10-30': 'qwen-edit',
+  'qwen-image-edit': 'qwen-edit',
   // 千问文生图
-  'qwen-image-2.0-pro': 't2i',
-  'qwen-image-2.0-pro-2026-03-03': 't2i',
-  'qwen-image-2.0': 't2i',
-  'qwen-image-2.0-2026-03-03': 't2i',
-  'qwen-image-plus': 't2i',
-  'qwen-image-max': 't2i',
+  'qwen-image-2.0-pro': 'qwen-t2i',
+  'qwen-image-2.0-pro-2026-03-03': 'qwen-t2i',
+  'qwen-image-2.0': 'qwen-t2i',
+  'qwen-image-2.0-2026-03-03': 'qwen-t2i',
+  'qwen-image-plus': 'qwen-t2i',
+  'qwen-image-max': 'qwen-t2i',
   // 万相文生图
   'wan2.6-t2i': 'wan-t2i',
   'wan2.5-t2i-preview': 'wan-t2i',
@@ -47,7 +47,7 @@ export const alibabaProvider: ImageProvider = {
 
   // 获取模型分类
   getModelCategory(model: string): string {
-    return MODEL_CATEGORIES[model] || 'edit';
+    return MODEL_CATEGORIES[model] || 'qwen-edit';
   },
 
   async validateKey(key: string): Promise<boolean> {
@@ -59,9 +59,13 @@ export const alibabaProvider: ImageProvider = {
     console.log('[Alibaba] Mode:', req.mode);
     console.log('[Alibaba] Model:', req.model);
 
-    // 转换图片为 base64
-    const imageBase64 = await blobToBase64(req.image);
-    console.log('[Alibaba] Image size:', imageBase64.length);
+    // 文生图模式不需要图片
+    let imageBase64: string | undefined;
+    console.log('[Alibaba] req.image:', !!req.image, 'req.image type:', req.image?.constructor?.name);
+    if (req.image) {
+      imageBase64 = await blobToBase64(req.image);
+      console.log('[Alibaba] Image base64 length:', imageBase64?.length);
+    }
 
     // 处理多图输入
     let additionalImages: string[] = [];
@@ -96,16 +100,28 @@ export const alibabaProvider: ImageProvider = {
           // 额外参数
           category: category,
           outputCount: req.outputCount || 1,
-          size: req.size || '1024x1024',
+          // 画质增强模式：根据 scale 计算输出尺寸
+          size: req.scale ? calculateUpscaleSize(req.scale) : (req.size || '1024*1024'),
+          // 千问支持
+          negative_prompt: req.negative_prompt,
+          prompt_extend: req.prompt_extend,
+          seed: req.seed,
+          // 万相支持
+          strength: req.strength,
         }),
       });
 
       console.log('[Alibaba] Response status:', response.status);
 
       if (!response.ok) {
-        const error = await response.json();
-        console.error('[Alibaba] Error:', error);
-        throw new Error(error.error || 'API Error');
+        const errorText = await response.text();
+        console.error('[Alibaba] Error response text:', errorText);
+        let errorObj: { error?: string; message?: string } = {};
+        try {
+          errorObj = JSON.parse(errorText);
+        } catch {}
+        const errorMsg = errorObj.error || errorObj.message || `API Error: ${response.status}`;
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
@@ -130,6 +146,14 @@ export const alibabaProvider: ImageProvider = {
     }
   },
 };
+
+// 根据 scale 计算输出尺寸
+function calculateUpscaleSize(scale: number): string {
+  // 假设原图最大边为 1024，增强后的尺寸
+  // 2x = 2048, 4x = 4096 (但API最大支持2048)
+  const maxSize = scale >= 4 ? 2048 : 1024 * scale;
+  return `${maxSize}*${maxSize}`;
+}
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
