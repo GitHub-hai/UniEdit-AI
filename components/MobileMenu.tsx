@@ -209,7 +209,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         aria-label="编辑菜单"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 glass-modal border-b border-white/5 px-4 py-3">
+        <div className="sticky top-0 z-10 bg-[#1d1d1f] border-b border-white/5 px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
@@ -250,7 +250,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         </div>
 
         {/* Generate Button - Fixed at bottom */}
-        <div className="sticky bottom-0 p-4 glass-modal border-t border-white/5 safe-area-bottom">
+        <div className="sticky bottom-0 p-4 bg-[#1d1d1f] border-t border-white/5 safe-area-bottom">
           <button
             type="button"
             onClick={handleGenerate}
