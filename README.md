@@ -1,11 +1,12 @@
 # UniEdit AI
 
-一个基于 AI 的图像编辑 Web 应用，支持多种图像处理功能。
+一个基于 AI 的图像编辑 Web 应用，支持多种图像生成与处理功能。
 
 ## 功能特点
 
 | 模式 | 说明 |
 |------|------|
+| 🌟 **文生图** | 通过文本描述生成图像 |
 | ✏️ **智能编辑** | 修改图片中的文字、物体、风格等 |
 | 🎨 **局部重绘** | 涂抹选中区域进行 AI 重绘 |
 | 🖼️ **智能扩图** | 根据原图智能扩展画面边界 |
@@ -13,17 +14,19 @@
 
 ## 支持的 AI 提供商
 
-- **阿里云 DashScope** - 千问图像模型
-  - `qwen-image-2.0-pro` (推荐)
-  - `qwen-image-2.0`
-  - `qwen-image-edit-max`
-  - `qwen-image-edit-plus`
+| 提供商 | 模型 | 说明 |
+|--------|------|------|
+| **阿里云 DashScope** | 千问图像编辑系列 | Qwen Image Edit Max/Plus |
+| | 千问文生图系列 | Qwen Image 2.0 Pro |
+| | 万相文生图 | Wanx 2.6 |
+| **OpenAI** | DALL·E 3 / DALL·E 2 | 图像编辑 |
+| **MiniMax** | Image 01 / Image 01 Live | 文生图 + 图生图 (I2I) |
 
-- **OpenAI** - DALL·E 图像编辑
+### 特色功能
 
-- **MiniMax** - 海螺图像模型
-
-- **Fal.ai** - Flux Pro 模型
+- **提示词优化器**：基于 MiniMax AI 智能优化简单指令，生成专业提示词
+- **多图输入**：支持同时上传多张参考图片
+- **高级参数**：反向提示词、随机种子、修改幅度控制
 
 ## 快速开始
 
@@ -45,7 +48,6 @@ npm install
 - [阿里云 DashScope](https://dashscope.console.aliyun.com/)
 - [OpenAI](https://platform.openai.com/)
 - [MiniMax](https://platform.minimaxi.com/)
-- [Fal.ai](https://fal.ai/)
 
 ### 3. 启动开发服务器
 
@@ -56,6 +58,13 @@ npm run dev
 打开 [http://localhost:3000](http://localhost:3000) 即可使用。
 
 ## 使用说明
+
+### 文生图模式
+
+1. 切换到"文生图"模式
+2. 输入文本描述
+3. 选择图像尺寸和生成数量
+4. 点击生成
 
 ### 智能编辑模式
 
@@ -97,7 +106,7 @@ npm run dev
 ## 注意事项
 
 - 上传图片大小不超过 10MB
-- 生成的图像分辨率为 2048×2048
+- 生成的图像分辨率最高可达 2048×2048
 - API 调用会产生费用，请留意使用量
 
 ## License
