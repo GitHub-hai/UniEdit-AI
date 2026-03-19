@@ -131,7 +131,8 @@ export const MODELS: Record<string, { id: string; name: string; category?: strin
     { id: 'sdxl-lightning', name: 'SDXL Lightning' },
   ],
   minimax: [
-    { id: 'image-01', name: 'Image 01' },
+    { id: 'image-01', name: 'Image 01', category: 't2i' },
+    { id: 'image-01-live', name: 'Image 01 Live', category: 't2i' },
   ],
 };
 
