@@ -35,6 +35,13 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
   if (activeMode === 'edit') {
     return (
       <div className="space-y-3">
+        {/* 模型提示 */}
+        <div className="bg-[#2d2d2f] rounded-lg p-3 text-xs text-[#86868b]">
+          <span className="text-[#2997ff] font-medium">💡 智能编辑</span> 需要上传图片，描述你想要的修改。
+          <br />
+          推荐模型：<span className="text-white">qwen-image-edit-max / qwen-image-edit-plus</span>
+        </div>
+
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-white">
             编辑指令
@@ -63,6 +70,13 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
   if (activeMode === 'inpaint') {
     return (
       <div className="space-y-4">
+        {/* 模型提示 */}
+        <div className="bg-[#2d2d2f] rounded-lg p-3 text-xs text-[#86868b]">
+          <span className="text-[#2997ff] font-medium">💡 局部重绘</span> 需要上传图片并涂抹红色遮罩区域。
+          <br />
+          推荐模型：<span className="text-white">qwen-image-edit-max / qwen-image-edit-plus</span>
+        </div>
+
         <div>
           <label className="text-sm font-medium text-white mb-2 block">
             笔刷大小: {brushSize}px
@@ -126,6 +140,13 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
   if (activeMode === 'outpaint') {
     return (
       <div className="space-y-4">
+        {/* 模型提示 */}
+        <div className="bg-[#2d2d2f] rounded-lg p-3 text-xs text-[#86868b]">
+          <span className="text-[#2997ff] font-medium">💡 智能扩图</span> 需要上传图片并设置扩展方向。
+          <br />
+          推荐模型：<span className="text-white">qwen-image-edit-max / qwen-image-edit-plus</span>
+        </div>
+
         <div>
           <label className="text-sm font-medium text-white mb-2 block">
             扩展方向
@@ -172,6 +193,13 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
   if (activeMode === 'upscale') {
     return (
       <div className="space-y-4">
+        {/* 模型提示 */}
+        <div className="bg-[#2d2d2f] rounded-lg p-3 text-xs text-[#86868b]">
+          <span className="text-[#2997ff] font-medium">💡 画质增强</span> 需要上传图片，自动提升分辨率和细节。
+          <br />
+          推荐模型：<span className="text-white">qwen-image-edit-max / qwen-image-edit-plus</span>
+        </div>
+
         <div>
           <label className="text-sm font-medium text-white mb-2 block">
             放大倍数
@@ -204,6 +232,13 @@ export function ModeControls({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
   if (activeMode === 't2i') {
     return (
       <div className="space-y-3">
+        {/* 模型提示 */}
+        <div className="bg-[#2d2d2f] rounded-lg p-3 text-xs text-[#86868b]">
+          <span className="text-[#2997ff] font-medium">💡 文生图</span> 无需上传图片，直接通过文字描述生成图片。
+          <br />
+          推荐模型：<span className="text-white">qwen-image-2.0-pro / wan2.6-t2i</span>
+        </div>
+
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-white">
             生成描述

@@ -59,6 +59,39 @@ export function downloadImage(base64: string, filename: string = 'uniedit-result
   document.body.removeChild(link);
 }
 
+// 生成缩略图 - 将大图缩小到指定最大尺寸，减少存储大小
+export async function generateThumbnail(
+  base64: string,
+  maxSize: number = 200
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      // 计算缩放比例
+      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+      const width = Math.round(img.width * scale);
+      const height = Math.round(img.height * scale);
+
+      // 创建画布并绘制缩略图
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // 输出为 base64 (使用 JPEG 格式减小体积)
+      const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
+      resolve(thumbnail);
+    };
+    img.onerror = reject;
+    img.src = base64;
+  });
+}
+
 export const PROVIDERS = [
   { id: 'openai', name: 'OpenAI', icon: '🔵' },
   { id: 'google', name: 'Google Vertex', icon: '🟢' },

@@ -7,8 +7,8 @@ import { ImageUploader } from './ImageUploader';
 import { ModeTabs } from './ModeTabs';
 import { ModeControls } from './ModeControls';
 import { preprocessImage } from '@/lib/preprocessor';
-import { getProvider } from '@/lib/providers';
-import { blobToBase64 } from '@/lib/utils';
+import { getProvider, alibabaProvider } from '@/lib/providers';
+import { blobToBase64, base64ToBlob, generateThumbnail } from '@/lib/utils';
 import { Toaster, toast } from 'sonner';
 
 interface ControlPanelProps {
@@ -29,6 +29,10 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     model,
     activeMode,
     prompt,
+    upscaleScale,
+    maskData,
+    outpaintDirection,
+    outpaintRatio,
     isLoading,
     setIsLoading,
     setIsSettingsOpen,
@@ -36,8 +40,10 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
   } = useApp();
 
   const handleGenerate = useCallback(async () => {
-    // 文生图模式不需要图片
-    if (!originalImage && activeMode !== 't2i') {
+    // 检查是否需要图片：根据 mode 和 model category 共同判断
+    const modelCategory = alibabaProvider.getModelCategory(model || 'qwen-image-edit-max');
+    const isT2iMode = activeMode === 't2i' || modelCategory === 'qwen-t2i' || modelCategory === 'wan-t2i';
+    if (!originalImage && !isT2iMode) {
       toast.error('请先上传图片');
       return;
     }
@@ -53,6 +59,9 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       return;
     }
 
+    // 画质增强模式使用默认 prompt
+    const finalPrompt = activeMode === 'upscale' ? 'enhance image quality, make it clearer and sharper' : prompt;
+
     const provider = getProvider(apiProvider);
     if (!provider) {
       toast.error('不支持的提供商');
@@ -65,26 +74,48 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     try {
       let imageBlob: Blob | undefined;
 
-      // 文生图模式不需要图片
+      console.log('[ControlPanel] originalImage:', !!originalImage, 'activeMode:', activeMode);
+
+      // 文生图模式不需要图片，其他模式都需要图片
       if (originalImage) {
-        const processedImage = await preprocessImage(originalImage, {
-          provider: apiProvider,
-        });
-        imageBlob = await fetch(processedImage).then(r => r.blob());
+        try {
+          const processedImage = await preprocessImage(originalImage, {
+            provider: apiProvider,
+          });
+          console.log('[ControlPanel] processedImage length:', processedImage?.length);
+          // Use base64ToBlob instead of fetch for data URLs
+          imageBlob = base64ToBlob(processedImage, 'image/jpeg');
+        } catch (err) {
+          console.error('[ControlPanel] preprocess error:', err);
+          toast.error('图片处理失败', { id: 'generating' });
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        console.log('[ControlPanel] No originalImage for mode:', activeMode);
       }
 
       let maskBlob: Blob | undefined;
-      if (activeMode === 'inpaint' && window.maskDataUrl) {
-        // Mask handling
+      if (activeMode === 'inpaint' && maskData) {
+        // 将 maskData (base64 data URL) 转换为 Blob
+        maskBlob = base64ToBlob(maskData, 'image/png');
       }
+
+      // 计算 scale 参数 (2x = 2048*2048, 4x 需要更大)
+      const scale = activeMode === 'upscale' ? upscaleScale : undefined;
 
       const resultBlob = await provider.generate(
         {
-          image: imageBlob!,
+          // 文生图模式不需要图片
+          image: imageBlob,
           mask: maskBlob,
-          prompt,
+          prompt: finalPrompt,
           mode: activeMode,
           model,
+          scale,
+          // 扩图模式参数
+          direction: activeMode === 'outpaint' ? outpaintDirection : undefined,
+          ratio: activeMode === 'outpaint' ? outpaintRatio : undefined,
         },
         apiKey
       );
@@ -92,8 +123,11 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
       const resultBase64 = await blobToBase64(resultBlob);
       setResultImage(resultBase64);
 
+      // 生成缩略图以减少存储大小
+      const thumbnail = await generateThumbnail(resultBase64, 200);
+
       addToHistory({
-        thumbnail: resultBase64,
+        thumbnail,
         prompt,
         mode: activeMode,
         provider: apiProvider,
@@ -112,10 +146,11 @@ export function ControlPanel({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     } finally {
       setIsLoading(false);
     }
-  }, [originalImage, apiKey, apiProvider, model, activeMode, prompt, setIsLoading, setResultImage, addToHistory, setIsSettingsOpen]);
+  }, [originalImage, apiKey, apiProvider, model, activeMode, prompt, upscaleScale, setIsLoading, setResultImage, addToHistory, setIsSettingsOpen]);
 
-  // 文生图模式不需要图片，其他模式需要
-  const needsImage = activeMode !== 't2i';
+  // 文生图模式不需要图片，其他模式需要（根据 mode 和 model category 共同判断）
+  const modelCategory = alibabaProvider.getModelCategory(model || 'qwen-image-edit-max');
+  const needsImage = activeMode !== 't2i' && modelCategory !== 'qwen-t2i' && modelCategory !== 'wan-t2i';
   const canGenerate = (!needsImage || originalImage) && !isLoading && (
     activeMode === 'upscale' || activeMode === 't2i' || prompt.trim().length > 0
   );
