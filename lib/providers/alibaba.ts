@@ -18,8 +18,8 @@ const MODEL_CATEGORIES: Record<string, string> = {
   'qwen-image-2.0-2026-03-03': 'qwen-t2i',
   'qwen-image-plus': 'qwen-t2i',
   'qwen-image-max': 'qwen-t2i',
-  // 万相文生图 (wanx-v1)
-  'wanx-v1': 'wan-t2i',
+  // 万相文生图 (使用与千问相同的端点)
+  'wan2.6-t2i': 'qwen-t2i',
   // 万相图像编辑 (已废弃，API Key不支持)
   // 'wan2.6-image-edit': 'wan-edit', // Model not exist
 };
@@ -35,7 +35,7 @@ export const alibabaProvider: ImageProvider = {
     { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro (推荐)' },
     { id: 'qwen-image-2.0', name: 'Qwen Image 2.0' },
     // 万相文生图
-    { id: 'wanx-v1', name: '万相 Wanx V1 (文生图)' },
+    { id: 'wan2.6-t2i', name: '万相 Wanx 2.6 (文生图)' },
   ],
 
   // 获取模型分类

@@ -119,7 +119,7 @@ export const MODELS: Record<string, { id: string; name: string; category?: strin
     { id: 'qwen-image-2.0-pro', name: 'Qwen Image 2.0 Pro (推荐)', category: 't2i' },
     { id: 'qwen-image-2.0', name: 'Qwen Image 2.0', category: 't2i' },
     // 万相文生图
-    { id: 'wanx-v1', name: '万相 Wanx V1 (文生图)', category: 'wan' },
+    { id: 'wan2.6-t2i', name: '万相 Wanx 2.6 (文生图)', category: 'qwen-t2i' },
   ],
   replicate: [
     { id: 'flux-pro', name: 'Flux Pro' },
