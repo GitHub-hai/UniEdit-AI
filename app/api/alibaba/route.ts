@@ -3,12 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // 千问 API 端点
 const DASHSCOPE_BASE = 'https://dashscope.aliyuncs.com/api/v1/services/aigc';
 
-// 图像编辑端点
-const IMAGE_EDIT_ENDPOINT = `${DASHSCOPE_BASE}/multimodal-generation/generation`;
+// 图像生成/编辑端点（千问和万相文生图都使用这个）
+const IMAGE_GEN_ENDPOINT = `${DASHSCOPE_BASE}/multimodal-generation/generation`;
 // 万相图像编辑端点
 const WAN_IMAGE_EDIT_ENDPOINT = `${DASHSCOPE_BASE}/image-edit/edit`;
-// 文生图端点
-const IMAGE_GEN_ENDPOINT = `${DASHSCOPE_BASE}/image-generation/generation`;
 
 // 模型分类映射
 const MODEL_CATEGORIES: Record<string, string> = {
@@ -48,14 +46,14 @@ function getEndpoint(category: string): string {
     case 'qwen-edit':
     case 'qwen-t2i':
       // 千问编辑和千问文生图都使用 multimodal-generation 端点
-      return IMAGE_EDIT_ENDPOINT;
+      return IMAGE_GEN_ENDPOINT;
     case 'wan-t2i':
-      // 万相文生图使用 image-generation 端点
+      // 万相文生图也使用 multimodal-generation 端点（与千问相同）
       return IMAGE_GEN_ENDPOINT;
     case 'wan-edit':
       return WAN_IMAGE_EDIT_ENDPOINT;
     default:
-      return IMAGE_EDIT_ENDPOINT;
+      return IMAGE_GEN_ENDPOINT;
   }
 }
 
