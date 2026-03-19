@@ -189,6 +189,53 @@ export function ImageCompare({ onUndo, onRedo, onClearMask, canUndo, canRedo }: 
     );
   }
 
+  // Show result only (for t2i mode - no original image)
+  if (resultImage && !originalImage) {
+    return (
+      <div className="flex-1 flex flex-col h-full">
+        <div
+          ref={containerRef}
+          className="flex-1 relative overflow-hidden bg-[#1d1d1f] m-4 rounded-2xl"
+        >
+          {/* Radial gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1d1d1f] via-[#0a0a0a] to-[#000000]" />
+
+          {/* Result image */}
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <img
+              src={resultImage}
+              alt="Result"
+              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+            />
+          </div>
+
+          {/* Result label */}
+          <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-lg">
+            结果
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex justify-center gap-3 p-4 border-t border-white/5 bg-[#1d1d1f]">
+          <button
+            onClick={handleReset}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            重置
+          </button>
+          <button
+            onClick={handleDownload}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            下载结果
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Empty state
   return (
     <div className="flex-1 flex items-center justify-center bg-[#0a0a0a] m-4 rounded-2xl">
