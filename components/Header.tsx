@@ -38,10 +38,11 @@ export function Header({ onMenuClick }: HeaderProps) {
           href="https://github.com/GitHub-hai/UniEdit-AI"
           target="_blank"
           rel="noopener noreferrer"
-          className="p-2.5 rounded-xl hover:bg-white/5 transition-all duration-300 active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-all duration-300 active:scale-95"
           aria-label="GitHub"
         >
           <Github className="w-[18px] h-[18px] text-[#86868b] hover:text-white transition-colors" />
+          <span className="text-sm text-[#86868b] hover:text-white transition-colors hidden sm:inline">github.com/GitHub-hai</span>
         </a>
         <button
           onClick={() => setIsSettingsOpen(true)}
