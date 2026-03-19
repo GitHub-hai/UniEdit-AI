@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
       });
 
       console.log('[MiniMax API] Response status:', response.status);
-    } catch (fetchErr) {
+    } catch (fetchErr: any) {
       console.error('[MiniMax API] Fetch failed:', fetchErr);
       console.error('[MiniMax API] Fetch error name:', fetchErr?.name);
       console.error('[MiniMax API] Fetch error message:', fetchErr?.message);

@@ -94,21 +94,20 @@ export async function generateThumbnail(
 
 export const PROVIDERS = [
   { id: 'openai', name: 'OpenAI', icon: '🔵' },
-  { id: 'google', name: 'Google Vertex', icon: '🟢' },
+  { id: 'google', name: 'Google Vertex AI', icon: '🟢' },
   { id: 'alibaba', name: 'Alibaba DashScope', icon: '🟠' },
-  { id: 'replicate', name: 'Replicate', icon: '⚫' },
-  { id: 'fal', name: 'Fal', icon: '🟣' },
   { id: 'minimax', name: 'MiniMax', icon: '🔴' },
 ] as const;
 
 export const MODELS: Record<string, { id: string; name: string; category?: string }[]> = {
   openai: [
-    { id: 'dall-e-3', name: 'DALL-E 3 (1024x1024)' },
-    { id: 'dall-e-2', name: 'DALL-E 2 (1024x1024)' },
-    { id: 'gpt-image-1', name: 'GPT Image 1' },
+    { id: 'gpt-image-1', name: 'GPT Image 1 (推荐)', category: 't2i' },
+    { id: 'dall-e-3', name: 'DALL-E 3', category: 'edit' },
+    { id: 'dall-e-2', name: 'DALL-E 2', category: 'edit' },
   ],
   google: [
-    { id: 'imagen-3', name: 'Imagen 3' },
+    { id: 'imagen-3', name: 'Imagen 3 (推荐)' },
+    { id: 'imagen-3-fast', name: 'Imagen 3 Fast' },
     { id: 'imagen-2', name: 'Imagen 2' },
   ],
   alibaba: [
@@ -120,15 +119,6 @@ export const MODELS: Record<string, { id: string; name: string; category?: strin
     { id: 'qwen-image-2.0', name: 'Qwen Image 2.0', category: 't2i' },
     // 万相文生图
     { id: 'wan2.6-t2i', name: '万相 Wanx 2.6 (文生图)', category: 'qwen-t2i' },
-  ],
-  replicate: [
-    { id: 'flux-pro', name: 'Flux Pro' },
-    { id: 'flux-schnell', name: 'Flux Schnell' },
-    { id: 'sdxl', name: 'Stable Diffusion XL' },
-  ],
-  fal: [
-    { id: 'flux-pro-1.1', name: 'Flux Pro 1.1' },
-    { id: 'sdxl-lightning', name: 'SDXL Lightning' },
   ],
   minimax: [
     { id: 'image-01', name: 'Image 01', category: 't2i' },
